@@ -340,6 +340,54 @@ table td{vertical-align:middle!important}
 }
 </style>
 
+
+<style id="worklive-admin-v5-extra">
+.remember-admin{
+  display:flex;align-items:center;gap:8px;margin:12px 0 4px;
+  color:#8fa6c1;font-size:12px;cursor:pointer;user-select:none;
+}
+.remember-admin input{width:16px;height:16px;accent-color:#2f87ff}
+.generated-pass-info{
+  padding:12px 13px;border-radius:10px;
+  border:1px solid rgba(47,135,255,.18);
+  background:rgba(47,135,255,.06);
+  color:#91afd2;font-size:11px;line-height:1.45;
+}
+@media(max-width:1050px){
+  .shell{padding-left:16px!important;padding-right:16px!important}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .grid2{grid-template-columns:1fr!important}
+  .table-wrap{overflow-x:auto!important}
+}
+@media(max-width:720px){
+  .topbar{height:64px!important}
+  .topbar-inner{padding:0 11px!important}
+  .brand img{width:120px!important;height:36px!important}
+  .brand span{display:none!important}
+  .ghost{height:36px!important;padding:0 10px!important}
+  .shell{padding:14px 10px 48px!important}
+  .page-head{flex-direction:column!important;align-items:flex-start!important}
+  .page-head h1{font-size:23px!important}
+  .nav{margin-left:-10px!important;margin-right:-10px!important;border-left:0!important;border-right:0!important;border-radius:0!important;padding:7px 10px!important}
+  .stats{grid-template-columns:1fr 1fr!important;gap:9px!important}
+  .stat{padding:13px!important}
+  .stat strong{font-size:22px!important}
+  .panel{border-radius:14px!important}
+  .panel-head{padding:13px!important}
+  .panel-body{padding:13px!important}
+  .form-grid{grid-template-columns:1fr!important}
+  .form-grid .full{grid-column:1!important}
+  .actions{grid-template-columns:1fr!important;min-width:140px!important}
+  .action{width:100%!important}
+  #adminToast{left:10px!important;right:10px!important;bottom:10px!important;max-width:none!important}
+}
+@media(max-width:430px){
+  .stats{grid-template-columns:1fr!important}
+  .top-actions{gap:5px!important}
+  .ghost{font-size:11px!important}
+}
+</style>
+
 </head>
 <body>
 <section id="login" class="login">
@@ -349,6 +397,7 @@ table td{vertical-align:middle!important}
 <p>Gerencie acessos, vendas automáticas e todo o conteúdo da biblioteca.</p>
 <div class="field"><label>E-mail</label><input id="email" type="email" required placeholder="admin@worklive.studio"></div>
 <div class="field"><label>Senha</label><input id="password" type="password" required placeholder="••••••••"></div>
+<label class="remember-admin"><input id="rememberAdmin" type="checkbox"> <span>Manter conectado neste dispositivo</span></label>
 <button class="primary" type="submit">Entrar no painel</button><div id="err" class="err"></div>
 </form>
 </section>
@@ -387,7 +436,7 @@ table td{vertical-align:middle!important}
 <section id="tab-manual" class="tabpage hidden">
 <div class="grid2">
 <div class="panel"><div class="panel-head"><h2>Cadastros manuais</h2><span>Acessos criados diretamente por você</span></div><div class="panel-body"><div class="toolbar"><div class="search"><input id="searchManual" placeholder="Buscar cadastro manual..."></div><select id="filterManual" class="select"><option value="all">Todos</option><option value="active">Ativos</option><option value="blocked">Bloqueados</option><option value="expired">Expirados</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Cadastro</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="rowsManual"></tbody></table></div></div>
-<aside class="panel"><div class="panel-head"><h2>Liberar acesso</h2><span>1 ano automático</span></div><div class="panel-body"><div class="form-grid"><input id="manualName" class="full" placeholder="Nome do cliente"><input id="manualEmail" class="full" type="email" placeholder="E-mail"><input id="manualPassword" class="full" placeholder="Senha inicial"><button class="primary full" id="createManualBtn">Criar acesso</button></div><div class="note">O cliente recebe apenas e-mail e senha. A validade de 1 ano é controle interno.</div></div></aside>
+<aside class="panel"><div class="panel-head"><h2>Liberar acesso</h2><span>1 ano automático</span></div><div class="panel-body"><div class="form-grid"><input id="manualName" class="full" placeholder="Nome do cliente"><input id="manualEmail" class="full" type="email" placeholder="E-mail"><div class="generated-pass-info full">🔐 A senha inicial será gerada automaticamente e o cliente poderá alterá-la ao entrar.</div><button class="primary full" id="createManualBtn">Criar acesso</button></div><div class="note">O cliente recebe apenas e-mail e senha. A validade de 1 ano é controle interno.</div></div></aside>
 </div>
 </section>
 
@@ -429,7 +478,14 @@ let contentMediaData='';
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function fmt(d){return d?new Date(d).toLocaleDateString('pt-BR'):'—'}
 function statusOf(c){if(c.status==='blocked')return'blocked';if(new Date(c.expires_at).getTime()<=Date.now())return'expired';return'active'}
-function randomPassword(){return 'WL-'+Math.random().toString(36).slice(2,6).toUpperCase()+Math.floor(1000+Math.random()*9000)}
+function randomPassword(){
+ const letters='ABCDEFGHJKLMNPQRSTUVWXYZ';
+ const digits='23456789';
+ let a='',b='';
+ for(let i=0;i<4;i++)a+=letters[Math.floor(Math.random()*letters.length)];
+ for(let i=0;i<4;i++)b+=digits[Math.floor(Math.random()*digits.length)];
+ return 'WL-'+a+'-'+b;
+}
 function load(){
  try{customers=JSON.parse(localStorage.getItem(CUSTOMER_KEY)||'[]')}catch(e){customers=[]}
  try{events=JSON.parse(localStorage.getItem(EVENT_KEY)||'[]')}catch(e){events=[]}
@@ -467,6 +523,7 @@ function actionButtons(c){
  return `<div class="actions">
   <button class="action resend" data-resend="${c.id}" title="Preparar reenvio do acesso por e-mail">✉ Reenviar</button>
   <button class="action renew" data-renew="${c.id}" title="Adicionar mais 1 ano à validade">↻ Renovar 1 ano</button>
+  <button class="action unblock" data-resetpass="${c.id}" title="Gerar nova senha temporária">🔑 Nova senha</button>
   <button class="action ${st==='blocked'?'unblock':'block'}" data-toggle="${c.id}" title="${st==='blocked'?'Liberar este acesso':'Bloquear este acesso'}">${st==='blocked'?'✓ Liberar':'⛔ Bloquear'}</button>
   <button class="action delete" data-delete="${c.id}" title="Excluir este acesso">× Excluir</button>
  </div>`
@@ -503,15 +560,36 @@ function renderCustomers(){
 ['filterAll','filterAuto','filterManual'].forEach(id=>$('#'+id).addEventListener('change',renderCustomers));
 
 function createManual(){
- const name=$('#manualName').value.trim(), email=$('#manualEmail').value.trim().toLowerCase();
- let pass=$('#manualPassword').value.trim(); if(!pass)pass=randomPassword();
- if(!name||!email){alert('Preencha nome e e-mail.');return}
- if(customers.some(c=>c.email===email)){alert('Esse e-mail já está cadastrado.');return}
- const created=new Date(), exp=new Date(created);exp.setFullYear(exp.getFullYear()+1);
- customers.unshift({id:crypto.randomUUID(),name,email,created_at:created.toISOString(),expires_at:exp.toISOString(),status:'active',source:'manual',access_password:pass});
- saveCustomers();logEvent('Acesso manual criado para '+email,'manual');renderCustomers();
- $('#manualName').value='';$('#manualEmail').value='';$('#manualPassword').value='';
- alert('Acesso criado. Senha inicial: '+pass);
+ const name=$('#manualName').value.trim();
+ const email=$('#manualEmail').value.trim().toLowerCase();
+ const pass=randomPassword();
+
+ if(!name||!email){adminToast('Preencha nome e e-mail.','warning');return}
+ if(customers.some(c=>c.email===email)){adminToast('Esse e-mail já está cadastrado.','warning');return}
+
+ const created=new Date();
+ const exp=new Date(created); exp.setFullYear(exp.getFullYear()+1);
+
+ customers.unshift({
+   id:crypto.randomUUID(),
+   name,email,
+   created_at:created.toISOString(),
+   expires_at:exp.toISOString(),
+   status:'active',
+   source:'manual',
+   access_password:pass,
+   force_password_change:true
+ });
+
+ saveCustomers();
+ logEvent('Acesso manual criado para '+email,'manual');
+ renderCustomers();
+
+ $('#manualName').value='';
+ $('#manualEmail').value='';
+
+ adminToast('Acesso criado. Senha inicial: '+pass,'success');
+ setTimeout(()=>alert('Acesso criado com sucesso.\\n\\nE-mail: '+email+'\\nSenha inicial: '+pass+'\\n\\nAo entrar, o cliente poderá criar uma nova senha.'),120);
 }
 $('#createManualBtn').onclick=createManual;
 
@@ -522,15 +600,15 @@ function adminToast(message,type='success'){
  clearTimeout(toastTimer); toastTimer=setTimeout(()=>{el.className=''},3200);
 }
 function resendAccess(c){
- const pass=c.access_password||randomPassword(); c.access_password=pass;saveCustomers();
+ const pass=c.access_password||randomPassword(); c.access_password=pass; if(c.force_password_change===undefined)c.force_password_change=true; saveCustomers();
  const subject=encodeURIComponent('Seu acesso à WorkLive Studio');
  const body=encodeURIComponent(`Olá ${c.name||''},\n\nSeu acesso à WorkLive Studio está liberado.\n\nE-mail: ${c.email}\nSenha: ${pass}\n\nAcesse a plataforma com estes dados.\n\nWorkLive Studio`);
  logEvent('Reenvio de acesso preparado para '+c.email,'manual');
  window.location.href=`mailto:${encodeURIComponent(c.email)}?subject=${subject}&body=${body}`;
 }
 function handleCustomerAction(e){
- const r=e.target.closest('[data-resend]'),n=e.target.closest('[data-renew]'),t=e.target.closest('[data-toggle]'),d=e.target.closest('[data-delete]');
- const id=(r&&r.dataset.resend)||(n&&n.dataset.renew)||(t&&t.dataset.toggle)||(d&&d.dataset.delete);
+ const r=e.target.closest('[data-resend]'),n=e.target.closest('[data-renew]'),p=e.target.closest('[data-resetpass]'),t=e.target.closest('[data-toggle]'),d=e.target.closest('[data-delete]');
+ const id=(r&&r.dataset.resend)||(n&&n.dataset.renew)||(p&&p.dataset.resetpass)||(t&&t.dataset.toggle)||(d&&d.dataset.delete);
  if(!id)return;
  const c=customers.find(x=>String(x.id)===String(id));
  if(!c){adminToast('Não foi possível localizar este cadastro.','danger');return}
@@ -538,6 +616,17 @@ function handleCustomerAction(e){
  if(r){
    adminToast('Abrindo o e-mail para reenviar o acesso…');
    resendAccess(c);
+   return;
+ }
+
+ if(p){
+   const newPass=randomPassword();
+   c.access_password=newPass;
+   c.force_password_change=true;
+   saveCustomers();
+   logEvent('Nova senha temporária gerada para '+c.email,'manual');
+   adminToast('Nova senha gerada: '+newPass,'success');
+   setTimeout(()=>alert('Nova senha temporária para '+c.email+':\n\n'+newPass+'\n\nO cliente poderá trocá-la ao entrar.'),120);
    return;
  }
 
@@ -655,10 +744,28 @@ $('#contentCards').onclick=e=>{
 
 function renderHistory(){$('#historyList').innerHTML=events.map(e=>`<div class="event"><strong>${esc(e.text)}</strong><small>${new Date(e.at).toLocaleString('pt-BR')} · ${esc(e.type)}</small></div>`).join('')||'<div class="event"><strong>Nenhuma ação registrada ainda.</strong></div>'}
 
-$('#loginForm').onsubmit=e=>{e.preventDefault();if($('#email').value.trim().toLowerCase()===ADMIN_EMAIL&&$('#password').value===ADMIN_PASSWORD){sessionStorage.setItem('wl-admin','1');$('#login').classList.add('hidden');$('#app').classList.remove('hidden');load();seed();renderCustomers();renderContents();renderHistory()}else $('#err').textContent='E-mail ou senha inválidos.'};
-$('#logoutBtn').onclick=()=>{sessionStorage.removeItem('wl-admin');location.reload()};
+function saveAdminSession(remember){
+ try{
+   sessionStorage.removeItem('wl-admin');
+   localStorage.removeItem('wl-admin');
+   (remember?localStorage:sessionStorage).setItem('wl-admin','1');
+ }catch(e){}
+}
+function hasAdminSession(){
+ try{return sessionStorage.getItem('wl-admin')==='1'||localStorage.getItem('wl-admin')==='1'}catch(e){return false}
+}
+$('#loginForm').onsubmit=e=>{
+ e.preventDefault();
+ if($('#email').value.trim().toLowerCase()===ADMIN_EMAIL&&$('#password').value===ADMIN_PASSWORD){
+   saveAdminSession($('#rememberAdmin').checked);
+   $('#login').classList.add('hidden');
+   $('#app').classList.remove('hidden');
+   load();seed();renderCustomers();renderContents();renderHistory();
+ }else $('#err').textContent='E-mail ou senha inválidos.';
+};
+$('#logoutBtn').onclick=()=>{sessionStorage.removeItem('wl-admin');localStorage.removeItem('wl-admin');location.reload()};
 $('#refreshBtn').onclick=()=>{load();renderCustomers();renderContents();renderHistory()};
-if(sessionStorage.getItem('wl-admin')==='1'){$('#login').classList.add('hidden');$('#app').classList.remove('hidden');load();seed();renderCustomers();renderContents();renderHistory()}
+if(hasAdminSession()){$('#login').classList.add('hidden');$('#app').classList.remove('hidden');load();seed();renderCustomers();renderContents();renderHistory()}
 </script>
 <div id="adminToast" role="status" aria-live="polite"></div>
 </body></html>
