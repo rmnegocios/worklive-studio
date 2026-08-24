@@ -741,12 +741,27 @@ async function handleCustomerAction(e){
      await manageRemoteAccess(c,'delete');
      customers=customers.filter(x=>String(x.id)!==String(c.id));
      saveCustomers();
-     logEvent('Acesso excluído: '+c.email);
+     logEvent('Acesso excluído do Supabase e do painel: '+c.email);
      renderCustomers();
      adminToast('Acesso excluído definitivamente.','danger');
    }catch(err){
      console.error(err);
-     adminToast('Falha ao excluir: '+err.message,'danger');
+
+     const msg=String(err&&err.message||'');
+     const notFound=msg.toLowerCase().includes('usuário não encontrado') ||
+                    msg.toLowerCase().includes('user not found') ||
+                    msg.includes('404');
+
+     if(notFound){
+       customers=customers.filter(x=>String(x.id)!==String(c.id));
+       saveCustomers();
+       logEvent('Cadastro antigo removido apenas do painel local: '+c.email);
+       renderCustomers();
+       adminToast('Cadastro antigo removido do painel.','warning');
+       return;
+     }
+
+     adminToast('Falha ao excluir: '+msg,'danger');
    }
  }
 }
