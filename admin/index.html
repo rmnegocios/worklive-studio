@@ -501,31 +501,80 @@ table td{vertical-align:middle!important}
 </style>
 
 
-<style id="worklive-v18-image-editor-fix">
-/* Editor visual em 3:4. Em 100%, a imagem aparece INTEIRA.
-   O usuário só recorta quando aplica zoom e arrasta. */
+
+<style id="worklive-v19-editor-3x4">
+/* ===== Editor 3:4 correto ===== */
+.media-frame-controls{
+  padding:16px!important;
+}
 .frame-direct-editor{
   display:flex!important;
   justify-content:center!important;
+  align-items:center!important;
+  width:100%!important;
+  margin-top:10px!important;
 }
 .frame-direct-viewport{
-  width:min(100%,520px)!important;
-  height:auto!important;
+  position:relative!important;
+  width:360px!important;
+  height:480px!important;
+  max-width:100%!important;
   aspect-ratio:3/4!important;
-  background:#050b12!important;
+  overflow:hidden!important;
+  border-radius:16px!important;
+  border:1px solid rgba(91,145,227,.24)!important;
+  background:
+    linear-gradient(45deg,rgba(255,255,255,.018) 25%,transparent 25%),
+    linear-gradient(-45deg,rgba(255,255,255,.018) 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,rgba(255,255,255,.018) 75%),
+    linear-gradient(-45deg,transparent 75%,rgba(255,255,255,.018) 75%),
+    #050b12!important;
+  background-size:22px 22px!important;
+  background-position:0 0,0 11px,11px -11px,-11px 0!important;
+  cursor:grab!important;
+  touch-action:none!important;
+  user-select:none!important;
 }
+.frame-direct-viewport.dragging{cursor:grabbing!important}
 .frame-direct-viewport img{
-  width:100%!important;
-  height:100%!important;
-  object-fit:contain!important;
-  object-position:center center!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:auto!important;
+  height:auto!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:unset!important;
+  object-position:unset!important;
+  transform-origin:center center!important;
+  pointer-events:none!important;
+  user-select:none!important;
+  -webkit-user-drag:none!important;
+  will-change:transform!important;
+}
+.frame-guide{
+  position:absolute!important;
+  inset:0!important;
+  pointer-events:none!important;
+  z-index:3!important;
+  border:1px solid rgba(255,255,255,.05)!important;
+  background:
+    linear-gradient(to right,transparent 33.1%,rgba(255,255,255,.055) 33.2%,rgba(255,255,255,.055) 33.5%,transparent 33.6%,transparent 66.3%,rgba(255,255,255,.055) 66.4%,rgba(255,255,255,.055) 66.7%,transparent 66.8%),
+    linear-gradient(to bottom,transparent 33.1%,rgba(255,255,255,.055) 33.2%,rgba(255,255,255,.055) 33.5%,transparent 33.6%,transparent 66.3%,rgba(255,255,255,.055) 66.4%,rgba(255,255,255,.055) 66.7%,transparent 66.8%)!important;
 }
 .frame-hint{
-  white-space:nowrap;
+  z-index:4!important;
+  bottom:12px!important;
+  white-space:nowrap!important;
 }
-@media(max-width:620px){
+.frame-mini-status{
+  justify-content:center!important;
+}
+@media(max-width:520px){
   .frame-direct-viewport{
-    width:min(100%,420px)!important;
+    width:min(86vw,330px)!important;
+    height:auto!important;
+    aspect-ratio:3/4!important;
   }
 }
 </style>
@@ -604,7 +653,7 @@ table td{vertical-align:middle!important}
   <div class="frame-control-title">
     <div>
       <strong>Ajustar enquadramento</strong>
-      <small>A imagem aparece inteira em 100%. Dê zoom e arraste para escolher exatamente o enquadramento do card 3:4.</small>
+      <small>Este quadro é exatamente 3:4. Em 100% você vê a imagem inteira; depois dê zoom e arraste até deixar do jeito que quer.</small>
     </div>
     <div class="frame-toolbar">
       <button type="button" class="frame-icon-btn" id="frameZoomOutBtn" title="Diminuir zoom">−</button>
@@ -618,7 +667,7 @@ table td{vertical-align:middle!important}
     <div class="frame-direct-viewport" id="frameViewport">
       <img id="frameDirectImage" alt="Prévia para enquadramento">
       <div class="frame-guide"></div>
-      <div class="frame-hint" id="frameHint">Imagem inteira em 100% • Arraste após dar zoom</div>
+      <div class="frame-hint" id="frameHint">Quadro 3:4 • Arraste para posicionar • +/− ou rodinha para zoom</div>
     </div>
   </div>
 
@@ -1068,19 +1117,29 @@ function updateFrameLabels(){
 function updateFramePreview(){
   updateFrameLabels();
   const img=$('#frameDirectImage');
-  if(!img)return;
+  const vp=$('#frameViewport');
+  if(!img||!vp||!img.naturalWidth||!img.naturalHeight)return;
 
   const f=currentFrameValues();
+  const vw=vp.clientWidth||360;
+  const vh=vp.clientHeight||480;
 
-  /* 100% = imagem inteira visível dentro do quadro 3:4.
-     A partir daí, zoom aproxima e o arraste reposiciona. */
-  const zoom=f.mediaZoom/100;
-  const tx=((50-f.mediaPosX)/50)*42;
-  const ty=((50-f.mediaPosY)/50)*42;
+  /* Em 100%, a imagem inteira cabe dentro do quadro 3:4. */
+  const fitScale=Math.min(vw/img.naturalWidth,vh/img.naturalHeight);
+  const scale=fitScale*(f.mediaZoom/100);
 
-  img.style.objectFit='contain';
-  img.style.objectPosition='center center';
-  img.style.transform=`translate(${tx}%,${ty}%) scale(${zoom})`;
+  /* 50/50 = centralizado. 0-100 move dentro do quadro. */
+  const fittedW=img.naturalWidth*scale;
+  const fittedH=img.naturalHeight*scale;
+  const freeX=Math.max(vw,fittedW)*0.55;
+  const freeY=Math.max(vh,fittedH)*0.55;
+
+  const tx=((50-f.mediaPosX)/50)*freeX;
+  const ty=((50-f.mediaPosY)/50)*freeY;
+
+  img.style.width=img.naturalWidth+'px';
+  img.style.height=img.naturalHeight+'px';
+  img.style.transform=`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(${scale})`;
   img.style.transformOrigin='center center';
 }
 
@@ -1088,13 +1147,14 @@ function setFrameImageSource(src){
   const img=$('#frameDirectImage');
   if(!img)return;
   if(src){
+    img.onload=()=>updateFramePreview();
     img.src=src;
     img.style.display='block';
+    if(img.complete)updateFramePreview();
   }else{
     img.removeAttribute('src');
     img.style.display='none';
   }
-  updateFramePreview();
 }
 
 function updateFrameControlsVisibility(){
@@ -1159,12 +1219,13 @@ function moveFrameDrag(e){
   }
 
   if(!frameDrag || frameDrag.pointerId!==e.pointerId)return;
+
   const rect=vp.getBoundingClientRect();
   const dx=e.clientX-frameDrag.startX;
   const dy=e.clientY-frameDrag.startY;
 
-  frameState.x=clamp(frameDrag.x-(dx/rect.width)*100,0,100);
-  frameState.y=clamp(frameDrag.y-(dy/rect.height)*100,0,100);
+  frameState.x=clamp(frameDrag.x-(dx/rect.width)*70,0,100);
+  frameState.y=clamp(frameDrag.y-(dy/rect.height)*70,0,100);
   updateFramePreview();
   e.preventDefault();
 }
