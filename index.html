@@ -45,8 +45,8 @@ main{max-width:1320px;margin:auto;padding:74px 26px 80px} .eyebrow{display:inlin
 
 body{position:relative;isolation:isolate;overflow-x:hidden}
 body::before,body::after{content:"";position:fixed;z-index:-3;pointer-events:none;border-radius:999px;filter:blur(95px);opacity:.42;will-change:transform}
-body::before{width:44vw;height:44vw;min-width:420px;min-height:420px;left:-16vw;top:8vh;background:radial-gradient(circle,rgba(31,124,255,.18) 0%,rgba(31,124,255,.045) 44%,transparent 70%);animation:vsaFloatA 15s ease-in-out infinite}
-body::after{width:38vw;height:38vw;min-width:380px;min-height:380px;right:-13vw;top:42vh;background:radial-gradient(circle,rgba(120,183,255,.12) 0%,rgba(31,124,255,.03) 50%,transparent 72%);animation:vsaFloatB 18s ease-in-out infinite}
+body::before{width:44vw;height:44vw;min-width:420px;min-height:420px;left:-16vw;top:8vh;background:radial-gradient(circle,rgba(31,124,255,.18) 0%,rgba(31,124,255,.045) 44%,transparent 70%);
+body::after{width:38vw;height:38vw;min-width:380px;min-height:380px;right:-13vw;top:42vh;background:radial-gradient(circle,rgba(120,183,255,.12) 0%,rgba(31,124,255,.03) 50%,transparent 72%);
 .app::before,.login-shell::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.75),transparent 82%);animation:vsaGridMove 24s linear infinite}
 
 .hero h1{animation:vsaGlowText 5s ease-in-out infinite}
@@ -949,6 +949,118 @@ button,input,select,textarea{max-width:100%}
 }
 </style>
 
+
+<style id="worklive-v10-layout-polish">
+/* ===== V10 — visual mais claro, estável e confortável ===== */
+
+/* Fundo menos preto e menos agressivo */
+body{
+  background:
+    radial-gradient(circle at 18% -8%,rgba(31,124,255,.14),transparent 28%),
+    radial-gradient(circle at 82% 10%,rgba(25,207,255,.08),transparent 24%),
+    linear-gradient(180deg,#0a1018 0%,#0c1420 45%,#0a111a 100%)!important;
+}
+
+/* Remove balanço/animações no login */
+.login-shell::before,
+.login-shell::after,
+.login-card,
+.login-card:hover,
+.login-card .worklive-brand-art,
+.logo,
+body::before,
+body::after{
+  
+  transform:none!important;
+}
+
+/* Sem animação de brilho/pulso no botão do login */
+.login-card .primary,
+.login-card .primary::after{
+  animation:none!important;
+}
+
+/* Login mais parecido com o Admin */
+.login-shell{
+  background:
+    radial-gradient(circle at 50% 0%,rgba(47,135,255,.11),transparent 34%),
+    linear-gradient(180deg,#09111c,#0b1522)!important;
+}
+.login-card{
+  background:linear-gradient(180deg,#0d1928,#0a1420)!important;
+  border-color:rgba(93,151,242,.22)!important;
+  box-shadow:0 26px 80px rgba(0,0,0,.30)!important;
+}
+.login-card:hover{box-shadow:0 26px 80px rgba(0,0,0,.30)!important}
+
+/* Área principal mais leve */
+.app{
+  background:
+    radial-gradient(circle at 12% 0%,rgba(47,135,255,.07),transparent 25%),
+    linear-gradient(180deg,#0b1420,#0d1723)!important;
+}
+.topbar{
+  background:rgba(10,18,29,.92)!important;
+}
+main{
+  background:transparent!important;
+}
+
+/* Seções/cards um pouco mais claros */
+.tabs{
+  background:#0d1824!important;
+  border-color:rgba(96,149,222,.20)!important;
+}
+.search input{
+  background:#101c2a!important;
+  border-color:rgba(96,149,222,.22)!important;
+  color:#eef5ff!important;
+}
+.card{
+  background:linear-gradient(180deg,#101c29,#0c1621)!important;
+  border-color:rgba(105,151,210,.18)!important;
+}
+.card-footer{
+  background:rgba(8,15,23,.28)!important;
+}
+
+/* Faixa branca/e-mail: força o campo de busca a ficar vazio e visual neutro */
+.search input{
+  box-shadow:none!important;
+}
+.search input::placeholder{color:#6f839b!important}
+
+/* Área vazia mais refinada */
+.empty{
+  background:rgba(13,24,36,.55)!important;
+  border-color:rgba(96,149,222,.16)!important;
+  color:#7f91a7!important;
+}
+
+/* Melhor contraste sem cansar a vista */
+.hero-subtitle,
+.counter,
+.card-footer,
+.login-card p{
+  color:#91a3b8!important;
+}
+.tab:not(.active){color:#a3b2c4!important}
+
+/* Remove qualquer “grid animado” do fundo */
+.app::before,
+.login-shell::after{
+  animation:none!important;
+  opacity:.28!important;
+}
+
+/* Banner estático */
+.hero-brand-art,
+.worklive-brand-art{
+  animation:none!important;
+  transform:none!important;
+}
+</style>
+
 </head>
 <body>
 <section id="login" class="login-shell">
@@ -985,7 +1097,7 @@ button,input,select,textarea{max-width:100%}
 <nav class="tabs" id="tabs">
 <button class="tab active" data-filter="Todos">Todos</button><button class="tab" data-filter="Vídeo">Vídeos</button><button class="tab" data-filter="Imagem">Imagens</button><button class="tab" data-filter="Roteiro">Roteiros</button><button class="tab" data-filter="Favoritos">Favoritos</button><button class="tab" data-filter="POV">Categoria POV</button><button class="tab" data-filter="POV + Mirror Selfie">POV + Mirror Selfie</button><button class="tab" data-filter="Mirror Selfie">Mirror Selfie</button><button class="tab coming-soon" data-filter="Cabide" disabled="" aria-disabled="true">Cabide <span>(Em breve)</span></button>
 </nav>
-<div class="toolbar"><div class="search"><span>⌕</span><input id="searchInput" placeholder="Buscar por título, tag ou prompt..."></div><div class="counter" id="counter">25 prompts</div></div>
+<div class="toolbar"><div class="search"><span>⌕</span><input id="searchInput" placeholder="Buscar conteúdos..."></div><div class="counter" id="counter">25 prompts</div></div>
 <section class="grid" id="grid"><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_4.jpg" alt="Recriando cenário" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="1">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Recriando cenário</h3><button class="copy" data-copy="1">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="1">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_5.jpg" alt="Remover roupas/textos" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="2">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Remover roupas/textos</h3><button class="copy" data-copy="2">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="2">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_6.jpg" alt="Colocando a mão no ambiente" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="3">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Colocando a mão no ambiente</h3><button class="copy" data-copy="3">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="3">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_7.jpg" alt="Colocar roupa no ambiente" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="4">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Colocar roupa no ambiente</h3><button class="copy" data-copy="4">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="4">Ver prompt →</button></div></article><article class="card"><div class="cover package has-media"><img class="cover-media image" src="./assets/img_8.jpg" alt="Roupa no pacote" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="5">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Roupa no pacote</h3><button class="copy" data-copy="5">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="5">Ver prompt →</button></div></article><article class="card"><div class="cover package has-media"><img class="cover-media image" src="./assets/img_9.jpg" alt="Colocar embalagem do TikTok" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="6">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Colocar embalagem do TikTok</h3><button class="copy" data-copy="6">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="6">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_1.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_10.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="7">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Gancho esticar a roupa</h3><button class="copy" data-copy="7">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="7">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_2.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/poster_2.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="8">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Gancho tapar câmera e pegar produto</h3><button class="copy" data-copy="8">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="8">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_3.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_11.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="10">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Gancho jogar roupa — opção 2</h3><button class="copy" data-copy="10">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="10">Ver prompt →</button></div></article><article class="card"><div class="cover package has-media"><video class="cover-media video" src="media/vid_4.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_12.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="11">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Gancho pacote transparente</h3><button class="copy" data-copy="11">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="11">Ver prompt →</button></div></article><article class="card"><div class="cover package has-media"><video class="cover-media video" src="media/vid_5.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/poster_5.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="12">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Gancho embalagem TikTok Shop</h3><button class="copy" data-copy="12">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="12">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_6.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_13.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="13">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Passar a mão na roupa</h3><button class="copy" data-copy="13">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="13">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_7.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_14.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="14">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Mostrar as peças</h3><button class="copy" data-copy="14">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="14">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_8.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_15.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="15">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Mostrar o tecido de perto</h3><button class="copy" data-copy="15">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="15">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_16.jpg" alt="COLOCAR ROUPA NA MAO DELA" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="17">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>COLOCAR ROUPA NA MAO DELA</h3><button class="copy" data-copy="17">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="17">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_17.jpg" alt="COLOCAR ROUPA NA MODELO" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="18">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>COLOCAR ROUPA NA MODELO</h3><button class="copy" data-copy="18">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="18">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_9.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_18.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="19">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>GANCHO JOGAR ROUPA NA CAMERA</h3><button class="copy" data-copy="19">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="19">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_10.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_19.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="20">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>GANCHO TAPAR CAMERA COM A MAO</h3><button class="copy" data-copy="20">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="20">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_11.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_20.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="21">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>GANCHO ALÇA</h3><button class="copy" data-copy="21">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="21">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_12.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_21.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="22">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>FRENTE+ LADO+ CABELO</h3><button class="copy" data-copy="22">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="22">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_13.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_22.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="23">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>FRENTE+FOCO NA ROUPA</h3><button class="copy" data-copy="23">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="23">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_14.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_23.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="24">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>CTA SIMPATICA</h3><button class="copy" data-copy="24">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="24">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_24.jpg" alt="MIRROR SELFIE BÁSICO — COLOCAR ROUPA NA MODELO" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="25">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>MIRROR SELFIE BÁSICO — COLOCAR ROUPA NA MODELO</h3><button class="copy" data-copy="25">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="25">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_15.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_25.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="26">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>FRENTE + DETALHE REALISTA + CTA — 10 SEG</h3><button class="copy" data-copy="26">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="26">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_16.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_26.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="27">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>LADO + CTA + FRENTE + CABELO</h3><button class="copy" data-copy="27">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="27">Ver prompt →</button></div></article></section>
 </main>
 </div>
@@ -1135,6 +1247,8 @@ function enter(){
   $('#app').classList.remove('hidden');
   $('#changePasswordBtn').classList.remove('hidden');
   document.body.style.overflow='';
+  const searchField=$('#search');
+  if(searchField)searchField.value='';
   render();
 }
 function showDenied(message){
