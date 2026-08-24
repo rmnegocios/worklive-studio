@@ -1034,7 +1034,7 @@ button,input,select,textarea{max-width:100%}
       </div>
       <button class="close" id="closePasswordReset">×</button>
     </div>
-    <p class="reset-help">Se quiser, você pode trocar sua senha de acesso a qualquer momento.</p>
+    <p class="reset-help">Esta é sua primeira entrada com a senha gerada automaticamente. Se quiser, crie agora uma senha pessoal. Você também pode fazer isso depois.</p>
     <div class="field"><label>Nova senha</label><input id="newClientPassword" type="password" placeholder="Mínimo 6 caracteres"></div>
     <div class="field"><label>Confirmar nova senha</label><input id="confirmClientPassword" type="password" placeholder="Digite novamente"></div>
     <div id="passwordResetError"></div>
@@ -1244,8 +1244,8 @@ $('#adminExport').onclick=()=>{const blob=new Blob([JSON.stringify(items,null,2)
 // Enquanto o Supabase não estiver conectado, esta versão usa a base local criada
 // pelo Admin no mesmo domínio/origem do GitHub Pages. Para clientes em aparelhos
 // diferentes, conectaremos o Supabase na próxima etapa.
-const SUPABASE_URL='COLE_AQUI_SUA_SUPABASE_URL';
-const SUPABASE_ANON_KEY='COLE_AQUI_SUA_SUPABASE_ANON_KEY';
+const SUPABASE_URL='https://lalxflccimuxlnetxxsq.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhbHhmbGNjaW11eGxuZXR4eHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MTIxNDQsImV4cCI6MjEwMzA4ODE0NH0.B2Zjth3gPWMyXeWi3bk3Vpl10t19sUdY_lPXPXz51vI';
 const CUSTOMER_KEY='worklive-admin-customers-v2';
 const CLIENT_SESSION_KEY='worklive-client-session-v1';
 
@@ -1332,8 +1332,9 @@ function closePasswordReset(){
   $('#passwordResetModal').classList.add('hidden');
 }
 function maybeOfferPasswordReset(){
-  // A troca de senha é opcional.
-  // O cliente pode usar o botão de chave no topo quando quiser.
+  if(currentLocalCustomer && currentLocalCustomer.force_password_change){
+    setTimeout(()=>openPasswordReset(false),250);
+  }
 }
 async function logoutWorkLive(){
   try{if(sbClient)await sbClient.auth.signOut()}catch(e){}
