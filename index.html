@@ -1030,11 +1030,11 @@ button,input,select,textarea{max-width:100%}
     <div class="modal-head">
       <div>
         <div class="meta">SEGURANÇA</div>
-        <h2>Crie sua nova senha</h2>
+        <h2>Alterar senha</h2>
       </div>
       <button class="close" id="closePasswordReset">×</button>
     </div>
-    <p class="reset-help">Você entrou com uma senha temporária. Se quiser, crie agora uma senha pessoal.</p>
+    <p class="reset-help">Se quiser, você pode trocar sua senha de acesso a qualquer momento.</p>
     <div class="field"><label>Nova senha</label><input id="newClientPassword" type="password" placeholder="Mínimo 6 caracteres"></div>
     <div class="field"><label>Confirmar nova senha</label><input id="confirmClientPassword" type="password" placeholder="Digite novamente"></div>
     <div id="passwordResetError"></div>
@@ -1332,9 +1332,8 @@ function closePasswordReset(){
   $('#passwordResetModal').classList.add('hidden');
 }
 function maybeOfferPasswordReset(){
-  if(currentLocalCustomer && currentLocalCustomer.force_password_change){
-    setTimeout(()=>openPasswordReset(false),250);
-  }
+  // A troca de senha é opcional.
+  // O cliente pode usar o botão de chave no topo quando quiser.
 }
 async function logoutWorkLive(){
   try{if(sbClient)await sbClient.auth.signOut()}catch(e){}
