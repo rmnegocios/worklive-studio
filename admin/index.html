@@ -1167,6 +1167,46 @@ main{
 }
 </style>
 
+
+<style id="worklive-card-framing-v16">
+/* V16 — o card da tela inicial usa exatamente o mesmo quadro 3:4 do ajustador.
+   A imagem parte inteira (contain) e recebe o zoom/posição salvos no prompt. */
+.card .cover{
+  aspect-ratio:3 / 4!important;
+  min-height:0!important;
+  background:#07101a!important;
+}
+.card .cover.has-media{
+  background:#07101a!important;
+}
+.card .cover-media.image{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  background:#07101a!important;
+  will-change:transform,object-position!important;
+}
+/* Mantém o conteúdo legível sem alterar o enquadramento escolhido. */
+.card .cover:before{
+  z-index:1!important;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 42%,rgba(0,0,0,.12) 56%,rgba(0,0,0,.92) 82%,rgba(0,0,0,.99) 100%)!important;
+  pointer-events:none!important;
+}
+.card .cover-content{
+  z-index:2!important;
+  width:100%!important;
+}
+.card .cover h3{
+  margin:0 0 14px!important;
+}
+.card .copy{
+  position:relative!important;
+  z-index:3!important;
+}
+</style>
+
 </head>
 <body>
 <section id="login" class="login-shell">
