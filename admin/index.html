@@ -436,7 +436,7 @@ table td{vertical-align:middle!important}
 <section id="tab-manual" class="tabpage hidden">
 <div class="grid2">
 <div class="panel"><div class="panel-head"><h2>Cadastros manuais</h2><span>Acessos criados diretamente por você</span></div><div class="panel-body"><div class="toolbar"><div class="search"><input id="searchManual" placeholder="Buscar cadastro manual..."></div><select id="filterManual" class="select"><option value="all">Todos</option><option value="active">Ativos</option><option value="blocked">Bloqueados</option><option value="expired">Expirados</option></select></div></div><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Cadastro</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead><tbody id="rowsManual"></tbody></table></div></div>
-<aside class="panel"><div class="panel-head"><h2>Liberar acesso</h2><span>1 ano automático</span></div><div class="panel-body"><div class="form-grid"><input id="manualName" class="full" placeholder="Nome do cliente"><input id="manualEmail" class="full" type="email" placeholder="E-mail"><div class="generated-pass-info full">🔐 A senha inicial será gerada automaticamente e o cliente poderá alterá-la ao entrar.</div><button class="primary full" id="createManualBtn">Criar acesso</button></div><div class="note">O cliente recebe apenas e-mail e senha. A validade de 1 ano é controle interno.</div></div></aside>
+<aside class="panel"><div class="panel-head"><h2>Liberar acesso</h2><span>1 ano automático</span></div><div class="panel-body"><div class="form-grid"><input id="manualName" class="full" placeholder="Nome do cliente"><input id="manualEmail" class="full" type="email" placeholder="E-mail"><div class="generated-pass-info full">🔐 A senha inicial será gerada automaticamente e enviada no acesso. O cliente poderá alterá-la depois, se quiser.</div><button class="primary full" id="createManualBtn">Criar acesso</button></div><div class="note">O cliente recebe apenas e-mail e senha. A validade de 1 ano é controle interno.</div></div></aside>
 </div>
 </section>
 
@@ -523,7 +523,6 @@ function actionButtons(c){
  return `<div class="actions">
   <button class="action resend" data-resend="${c.id}" title="Preparar reenvio do acesso por e-mail">✉ Reenviar</button>
   <button class="action renew" data-renew="${c.id}" title="Adicionar mais 1 ano à validade">↻ Renovar 1 ano</button>
-  <button class="action unblock" data-resetpass="${c.id}" title="Gerar nova senha temporária">🔑 Nova senha</button>
   <button class="action ${st==='blocked'?'unblock':'block'}" data-toggle="${c.id}" title="${st==='blocked'?'Liberar este acesso':'Bloquear este acesso'}">${st==='blocked'?'✓ Liberar':'⛔ Bloquear'}</button>
   <button class="action delete" data-delete="${c.id}" title="Excluir este acesso">× Excluir</button>
  </div>`
@@ -570,7 +569,7 @@ function createManual(){
  const created=new Date();
  const exp=new Date(created); exp.setFullYear(exp.getFullYear()+1);
 
- customers.unshift({
+ const customer={
    id:crypto.randomUUID(),
    name,email,
    created_at:created.toISOString(),
@@ -578,9 +577,10 @@ function createManual(){
    status:'active',
    source:'manual',
    access_password:pass,
-   force_password_change:true
- });
+   force_password_change:false
+ };
 
+ customers.unshift(customer);
  saveCustomers();
  logEvent('Acesso manual criado para '+email,'manual');
  renderCustomers();
@@ -588,8 +588,11 @@ function createManual(){
  $('#manualName').value='';
  $('#manualEmail').value='';
 
- adminToast('Acesso criado. Senha inicial: '+pass,'success');
- setTimeout(()=>alert('Acesso criado com sucesso.\\n\\nE-mail: '+email+'\\nSenha inicial: '+pass+'\\n\\nAo entrar, o cliente poderá criar uma nova senha.'),120);
+ adminToast('Acesso criado. Preparando e-mail com a senha aleatória…','success');
+
+ // Nesta versão estática, abre o e-mail já preenchido.
+ // Quando conectarmos o backend de e-mail, esse envio será automático.
+ setTimeout(()=>resendAccess(customer),350);
 }
 $('#createManualBtn').onclick=createManual;
 
@@ -602,13 +605,13 @@ function adminToast(message,type='success'){
 function resendAccess(c){
  const pass=c.access_password||randomPassword(); c.access_password=pass; if(c.force_password_change===undefined)c.force_password_change=true; saveCustomers();
  const subject=encodeURIComponent('Seu acesso à WorkLive Studio');
- const body=encodeURIComponent(`Olá ${c.name||''},\n\nSeu acesso à WorkLive Studio está liberado.\n\nE-mail: ${c.email}\nSenha: ${pass}\n\nAcesse a plataforma com estes dados.\n\nWorkLive Studio`);
+ const body=encodeURIComponent(`Olá ${c.name||''},\n\nSeu acesso à WorkLive Studio está liberado.\n\nE-mail: ${c.email}\nSenha: ${pass}\n\nAcesse a plataforma com estes dados. Se quiser, depois de entrar você poderá alterar sua senha.\n\nWorkLive Studio`);
  logEvent('Reenvio de acesso preparado para '+c.email,'manual');
  window.location.href=`mailto:${encodeURIComponent(c.email)}?subject=${subject}&body=${body}`;
 }
 function handleCustomerAction(e){
- const r=e.target.closest('[data-resend]'),n=e.target.closest('[data-renew]'),p=e.target.closest('[data-resetpass]'),t=e.target.closest('[data-toggle]'),d=e.target.closest('[data-delete]');
- const id=(r&&r.dataset.resend)||(n&&n.dataset.renew)||(p&&p.dataset.resetpass)||(t&&t.dataset.toggle)||(d&&d.dataset.delete);
+ const r=e.target.closest('[data-resend]'),n=e.target.closest('[data-renew]'),t=e.target.closest('[data-toggle]'),d=e.target.closest('[data-delete]');
+ const id=(r&&r.dataset.resend)||(n&&n.dataset.renew)||(t&&t.dataset.toggle)||(d&&d.dataset.delete);
  if(!id)return;
  const c=customers.find(x=>String(x.id)===String(id));
  if(!c){adminToast('Não foi possível localizar este cadastro.','danger');return}
