@@ -393,6 +393,73 @@ table td{vertical-align:middle!important}
 #emailBackendBadge{font-weight:900}
 </style>
 
+
+<style id="worklive-media-frame-editor-v15">
+.media-frame-controls{
+  border:1px solid rgba(47,135,255,.18);
+  background:linear-gradient(180deg,rgba(47,135,255,.055),rgba(47,135,255,.018));
+  border-radius:14px;
+  padding:14px;
+  margin-top:2px;
+}
+.frame-control-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:13px;
+}
+.frame-control-title strong{display:block;font-size:12px;color:#eaf4ff}
+.frame-control-title small{display:block;margin-top:3px;color:#6f8aaa;font-size:10px;line-height:1.4}
+.frame-reset-btn{height:34px!important;white-space:nowrap}
+.frame-control-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:11px;
+}
+.frame-control-grid label{
+  display:grid;
+  gap:7px;
+  padding:10px 11px;
+  border:1px solid rgba(102,157,235,.12);
+  background:#07111c;
+  border-radius:11px;
+}
+.frame-control-grid label span{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  color:#9bb1ca;
+  font-size:10px;
+  font-weight:800;
+}
+.frame-control-grid label b{color:#65aaff;font-size:10px}
+.frame-control-grid input[type=range]{
+  width:100%;
+  accent-color:#2f87ff;
+}
+.frame-tip{
+  margin-top:10px;
+  color:#6684a6;
+  font-size:10px;
+}
+#contentPreview{
+  position:relative;
+  overflow:hidden!important;
+}
+#contentPreview img.frame-preview-image{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  will-change:transform,object-position;
+}
+@media(max-width:720px){
+  .frame-control-grid{grid-template-columns:1fr!important}
+  .frame-control-title{align-items:flex-start;flex-direction:column}
+}
+</style>
+
 </head>
 <body>
 <section id="login" class="login">
@@ -461,6 +528,36 @@ table td{vertical-align:middle!important}
 <div class="full field"><label>Imagem ou vídeo</label><input id="contentFile" class="filebtn" type="file" accept="image/*,video/*"></div>
 <input id="contentUrl" class="full" placeholder="Ou URL da mídia">
 <div id="contentPreview" class="preview full">Prévia da mídia</div>
+
+<div id="mediaFrameControls" class="media-frame-controls full hidden">
+  <div class="frame-control-title">
+    <div>
+      <strong>Ajustar enquadramento</strong>
+      <small>Personalize como a imagem aparece no card, sem alterar o arquivo original.</small>
+    </div>
+    <button type="button" class="secondary frame-reset-btn" id="resetMediaFrameBtn">Centralizar</button>
+  </div>
+
+  <div class="frame-control-grid">
+    <label>
+      <span>Zoom <b id="mediaZoomValue">100%</b></span>
+      <input id="mediaZoom" type="range" min="100" max="220" value="100" step="1">
+    </label>
+
+    <label>
+      <span>Horizontal <b id="mediaPosXValue">50%</b></span>
+      <input id="mediaPosX" type="range" min="0" max="100" value="50" step="1">
+    </label>
+
+    <label>
+      <span>Vertical <b id="mediaPosYValue">50%</b></span>
+      <input id="mediaPosY" type="range" min="0" max="100" value="50" step="1">
+    </label>
+  </div>
+
+  <div class="frame-tip">Dica: use Horizontal e Vertical para escolher a parte mais bonita da foto e Zoom para aproximar.</div>
+</div>
+
 </div>
 <div class="section-actions"><button class="primary" id="saveContentBtn">Salvar conteúdo</button><button class="secondary" id="clearContentBtn">Limpar</button><button class="secondary" id="exportContentBtn">Exportar backup</button></div>
 <div class="note">Quando Admin e Cliente estiverem hospedados no mesmo domínio, o conteúdo salvo aqui alimentará a biblioteca do cliente pela mesma base. Nesta versão local, ambos usam a chave compartilhada <b>worklive-studio-items</b>.</div>
@@ -799,21 +896,86 @@ async function handleCustomerAction(e){
 ['rowsAll','rowsAuto','rowsManual'].forEach(id=>$('#'+id).addEventListener('click',handleCustomerAction));
 
 function fileToData(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
-function clearContentForm(){$('#contentId').value='';$('#contentTitle').value='';$('#contentType').value='Imagem';$('#contentCategory').value='';$('#contentTool').value='IA';$('#contentPrompt').value='';$('#contentUrl').value='';$('#contentFile').value='';contentMediaData='';$('#contentPreview').innerHTML='Prévia da mídia'}
+
+function currentFrameValues(){
+  return {
+    mediaZoom: Math.max(100, Math.min(220, +($('#mediaZoom')?.value||100))),
+    mediaPosX: Math.max(0, Math.min(100, +($('#mediaPosX')?.value||50))),
+    mediaPosY: Math.max(0, Math.min(100, +($('#mediaPosY')?.value||50)))
+  };
+}
+function setFrameControls(data){
+  const zoom=Math.max(100,Math.min(220,+((data&&data.mediaZoom)||100)));
+  const x=Math.max(0,Math.min(100,+((data&&data.mediaPosX)??50)));
+  const y=Math.max(0,Math.min(100,+((data&&data.mediaPosY)??50)));
+  if($('#mediaZoom'))$('#mediaZoom').value=zoom;
+  if($('#mediaPosX'))$('#mediaPosX').value=x;
+  if($('#mediaPosY'))$('#mediaPosY').value=y;
+  updateFrameLabels();
+}
+function updateFrameLabels(){
+  if($('#mediaZoomValue'))$('#mediaZoomValue').textContent=($('#mediaZoom')?.value||100)+'%';
+  if($('#mediaPosXValue'))$('#mediaPosXValue').textContent=($('#mediaPosX')?.value||50)+'%';
+  if($('#mediaPosYValue'))$('#mediaPosYValue').textContent=($('#mediaPosY')?.value||50)+'%';
+}
+function updateFramePreview(){
+  updateFrameLabels();
+  const img=$('#contentPreview img');
+  if(!img)return;
+  const f=currentFrameValues();
+  img.style.objectPosition=f.mediaPosX+'% '+f.mediaPosY+'%';
+  img.style.transform='scale('+(f.mediaZoom/100)+')';
+  img.style.transformOrigin=f.mediaPosX+'% '+f.mediaPosY+'%';
+}
+function updateFrameControlsVisibility(){
+  const box=$('#mediaFrameControls');
+  if(!box)return;
+  const type=$('#contentType')?.value;
+  const hasMedia=!!(contentMediaData||$('#contentUrl')?.value.trim()||$('#contentPreview img'));
+  box.classList.toggle('hidden',type!=='Imagem'||!hasMedia);
+}
+
+function clearContentForm(){$('#contentId').value='';$('#contentTitle').value='';$('#contentType').value='Imagem';$('#contentCategory').value='';$('#contentTool').value='IA';$('#contentPrompt').value='';$('#contentUrl').value='';$('#contentFile').value='';contentMediaData='';$('#contentPreview').innerHTML='Prévia da mídia';setFrameControls({mediaZoom:100,mediaPosX:50,mediaPosY:50});updateFrameControlsVisibility()}
 function previewContent(src,type){
- const p=$('#contentPreview');if(!src){p.innerHTML=type==='Roteiro'?'<div style="font-size:30px;color:#56a4ff;font-weight:900">ROTEIRO</div>':'Prévia da mídia';return}
- p.innerHTML=type==='Vídeo'?`<video src="${esc(src)}" autoplay muted loop playsinline controls></video>`:`<img src="${esc(src)}" alt="">`;
+ const p=$('#contentPreview');
+ if(!src){
+   p.innerHTML=type==='Roteiro'?'<div style="font-size:30px;color:#56a4ff;font-weight:900">ROTEIRO</div>':'Prévia da mídia';
+   updateFrameControlsVisibility();
+   return;
+ }
+ if(type==='Vídeo'){
+   p.innerHTML=`<video src="${esc(src)}" autoplay muted loop playsinline controls></video>`;
+ }else{
+   p.innerHTML=`<img class="frame-preview-image" src="${esc(src)}" alt="">`;
+   updateFramePreview();
+ }
  const v=p.querySelector('video');if(v){v.muted=true;v.play().catch(()=>{})}
+ updateFrameControlsVisibility();
 }
 $('#contentFile').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;contentMediaData=await fileToData(f);previewContent(contentMediaData,$('#contentType').value)};
-$('#contentUrl').oninput=e=>previewContent(e.target.value.trim(),$('#contentType').value);
-$('#contentType').onchange=()=>previewContent(contentMediaData||$('#contentUrl').value.trim(),$('#contentType').value);
+$('#contentUrl').oninput=e=>{previewContent(e.target.value.trim(),$('#contentType').value);updateFrameControlsVisibility()};
+$('#contentType').onchange=()=>{previewContent(contentMediaData||$('#contentUrl').value.trim(),$('#contentType').value);updateFrameControlsVisibility()};
+
+['mediaZoom','mediaPosX','mediaPosY'].forEach(id=>{
+ const el=$('#'+id);
+ if(el)el.addEventListener('input',updateFramePreview);
+});
+if($('#resetMediaFrameBtn'))$('#resetMediaFrameBtn').onclick=()=>{
+ setFrameControls({mediaZoom:100,mediaPosX:50,mediaPosY:50});
+ updateFramePreview();
+};
+
 
 function saveContent(){
  const id=+$('#contentId').value||Date.now(), old=contents.find(x=>x.id===id), type=$('#contentType').value;
  const title=$('#contentTitle').value.trim(),prompt=$('#contentPrompt').value;if(!title||!prompt){alert('Preencha título e conteúdo.');return}
  const media=type==='Roteiro'?'':(contentMediaData||$('#contentUrl').value.trim()||(old&&old.media)||'');
- const obj={id,title,type,category:$('#contentCategory').value.trim(),tool:$('#contentTool').value.trim()||'IA',prompt,media};
+ const frame=currentFrameValues();
+ const obj={id,title,type,category:$('#contentCategory').value.trim(),tool:$('#contentTool').value.trim()||'IA',prompt,media,
+   mediaZoom:type==='Imagem'?frame.mediaZoom:100,
+   mediaPosX:type==='Imagem'?frame.mediaPosX:50,
+   mediaPosY:type==='Imagem'?frame.mediaPosY:50
+ };
  const idx=contents.findIndex(x=>x.id===id);if(idx>=0)contents[idx]=obj;else contents.unshift(obj);
  saveContents();logEvent((idx>=0?'Conteúdo atualizado: ':'Conteúdo cadastrado: ')+title,'content');renderContents();clearContentForm();
 }
@@ -832,7 +994,7 @@ function renderContents(){
    }else if(x.media){
      mediaHtml=x.type==='Vídeo'
        ?`<video src="${esc(x.media)}" autoplay muted loop playsinline preload="metadata"></video>`
-       :`<img src="${esc(x.media)}" alt="${esc(x.title)}" loading="lazy">`;
+       :`<img src="${esc(x.media)}" alt="${esc(x.title)}" loading="lazy" style="object-position:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%;transform:scale(${+(x.mediaZoom||100)/100});transform-origin:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%">`;
    }else{
      mediaHtml=`<div class="media-fallback"><div class="fallback-icon">${x.type==='Vídeo'?'▶':'▧'}</div><strong>Sem mídia cadastrada</strong><small>Edite este conteúdo e adicione a mídia.</small></div>`;
    }
@@ -873,7 +1035,7 @@ function renderContents(){
 $('#contentSearch').oninput=renderContents;
 $('#contentCards').onclick=e=>{
  const ed=e.target.closest('[data-edit-content]'),del=e.target.closest('[data-delete-content]');
- if(ed){const x=contents.find(i=>i.id===+ed.dataset.editContent);if(!x)return;$('#contentId').value=x.id;$('#contentTitle').value=x.title;$('#contentType').value=x.type;$('#contentCategory').value=x.category||'';$('#contentTool').value=x.tool||'IA';$('#contentPrompt').value=x.prompt||'';$('#contentUrl').value=x.media||'';contentMediaData='';previewContent(x.media,x.type);window.scrollTo({top:0,behavior:'smooth'});return}
+ if(ed){const x=contents.find(i=>i.id===+ed.dataset.editContent);if(!x)return;$('#contentId').value=x.id;$('#contentTitle').value=x.title;$('#contentType').value=x.type;$('#contentCategory').value=x.category||'';$('#contentTool').value=x.tool||'IA';$('#contentPrompt').value=x.prompt||'';$('#contentUrl').value=x.media||'';contentMediaData='';setFrameControls(x);previewContent(x.media,x.type);window.scrollTo({top:0,behavior:'smooth'});return}
  if(del){const x=contents.find(i=>i.id===+del.dataset.deleteContent);if(x&&confirm('Excluir "'+x.title+'"?')){contents=contents.filter(i=>i.id!==x.id);saveContents();logEvent('Conteúdo excluído: '+x.title,'content');renderContents()}}
 };
 
