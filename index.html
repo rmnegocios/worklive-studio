@@ -1382,7 +1382,9 @@ $('#loginForm').addEventListener('submit',async e=>{
     loginMsg('');
     enter();
   }catch(err){
-    loginMsg('E-mail ou senha inválidos.');
+    console.error('SUPABASE LOGIN ERROR:',err);
+    const detail=(err&&err.message)?err.message:'Falha desconhecida';
+    loginMsg('Não foi possível entrar: '+detail);
   }
 });
 
