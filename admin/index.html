@@ -622,7 +622,26 @@ function load(){
 }
 function saveCustomers(){localStorage.setItem(CUSTOMER_KEY,JSON.stringify(customers))}
 function saveEvents(){localStorage.setItem(EVENT_KEY,JSON.stringify(events))}
-function saveContents(){localStorage.setItem(CONTENT_KEY,JSON.stringify(contents))}
+
+function saveContents(){
+  const payload=JSON.stringify(contents);
+  try{
+    localStorage.setItem(CONTENT_KEY,payload);
+    return true;
+  }catch(err){
+    console.error('Falha ao salvar conteúdos:',err);
+
+    if(err && (err.name==='QuotaExceededError' || err.code===22 || err.code===1014)){
+      adminToast('Armazenamento cheio. A imagem ficou grande demais para o navegador.','danger');
+      alert('Não foi possível salvar porque o armazenamento local do navegador está cheio.\\n\\nTente novamente com esta versão: as novas imagens serão comprimidas automaticamente.');
+    }else{
+      adminToast('Erro ao salvar o conteúdo.','danger');
+      alert('Não foi possível salvar o conteúdo.\\n\\n'+(err&&err.message?err.message:String(err)));
+    }
+    return false;
+  }
+}
+
 function logEvent(text,type='manual'){events.unshift({id:crypto.randomUUID(),text,type,at:new Date().toISOString()});events=events.slice(0,100);saveEvents();renderHistory()}
 function seed(){
  if(customers.length)return;
@@ -895,7 +914,54 @@ async function handleCustomerAction(e){
 }
 ['rowsAll','rowsAuto','rowsManual'].forEach(id=>$('#'+id).addEventListener('click',handleCustomerAction));
 
-function fileToData(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+
+function fileToData(file){
+  return new Promise((resolve,reject)=>{
+    if(file && file.type && file.type.startsWith('image/')){
+      const reader=new FileReader();
+      reader.onerror=reject;
+      reader.onload=()=>{
+        const img=new Image();
+        img.onload=()=>{
+          try{
+            const MAX=1400;
+            let w=img.naturalWidth||img.width;
+            let h=img.naturalHeight||img.height;
+            const scale=Math.min(1,MAX/Math.max(w,h));
+            w=Math.max(1,Math.round(w*scale));
+            h=Math.max(1,Math.round(h*scale));
+
+            const canvas=document.createElement('canvas');
+            canvas.width=w;canvas.height=h;
+            const ctx=canvas.getContext('2d',{alpha:true});
+            ctx.drawImage(img,0,0,w,h);
+
+            let data;
+            try{
+              data=canvas.toDataURL('image/webp',0.82);
+              if(!data || !data.startsWith('data:image/webp')) data=canvas.toDataURL('image/jpeg',0.84);
+            }catch(e){
+              data=reader.result;
+            }
+            resolve(data);
+          }catch(err){
+            resolve(reader.result);
+          }
+        };
+        img.onerror=()=>resolve(reader.result);
+        img.src=reader.result;
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
+
 
 function currentFrameValues(){
   return {
@@ -966,20 +1032,55 @@ if($('#resetMediaFrameBtn'))$('#resetMediaFrameBtn').onclick=()=>{
 };
 
 
+
 function saveContent(){
- const id=+$('#contentId').value||Date.now(), old=contents.find(x=>x.id===id), type=$('#contentType').value;
- const title=$('#contentTitle').value.trim(),prompt=$('#contentPrompt').value;if(!title||!prompt){alert('Preencha título e conteúdo.');return}
- const media=type==='Roteiro'?'':(contentMediaData||$('#contentUrl').value.trim()||(old&&old.media)||'');
+ const id=+$('#contentId').value||Date.now();
+ const old=contents.find(x=>x.id===id);
+ const type=$('#contentType').value;
+ const title=$('#contentTitle').value.trim();
+ const prompt=$('#contentPrompt').value;
+
+ if(!title||!prompt){
+   alert('Preencha título e conteúdo.');
+   return;
+ }
+
+ const media=type==='Roteiro'
+   ?''
+   :(contentMediaData||$('#contentUrl').value.trim()||(old&&old.media)||'');
+
  const frame=currentFrameValues();
- const obj={id,title,type,category:$('#contentCategory').value.trim(),tool:$('#contentTool').value.trim()||'IA',prompt,media,
+ const obj={
+   id,title,type,
+   category:$('#contentCategory').value.trim(),
+   tool:$('#contentTool').value.trim()||'IA',
+   prompt,
+   media,
    mediaZoom:type==='Imagem'?frame.mediaZoom:100,
    mediaPosX:type==='Imagem'?frame.mediaPosX:50,
    mediaPosY:type==='Imagem'?frame.mediaPosY:50
  };
- const idx=contents.findIndex(x=>x.id===id);if(idx>=0)contents[idx]=obj;else contents.unshift(obj);
- saveContents();logEvent((idx>=0?'Conteúdo atualizado: ':'Conteúdo cadastrado: ')+title,'content');renderContents();clearContentForm();
+
+ const backup=[...contents];
+ const idx=contents.findIndex(x=>x.id===id);
+
+ if(idx>=0)contents[idx]=obj;
+ else contents.unshift(obj);
+
+ const ok=saveContents();
+
+ if(!ok){
+   contents=backup;
+   return;
+ }
+
+ logEvent((idx>=0?'Conteúdo atualizado: ':'Conteúdo cadastrado: ')+title,'content');
+ renderContents();
+ clearContentForm();
+ adminToast(idx>=0?'Conteúdo atualizado com sucesso.':'Conteúdo salvo com sucesso.','success');
 }
-$('#saveContentBtn').onclick=saveContent;$('#clearContentBtn').onclick=clearContentForm;
+$('#saveContentBtn').onclick=saveContent;
+$('#clearContentBtn').onclick=clearContentForm;
 $('#exportContentBtn').onclick=()=>{const blob=new Blob([JSON.stringify(contents,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='worklive-studio-conteudos.json';a.click();URL.revokeObjectURL(a.href)};
 
 function renderContents(){
@@ -1063,6 +1164,19 @@ $('#loginForm').onsubmit=e=>{
 $('#logoutBtn').onclick=()=>{sessionStorage.removeItem('wl-admin');localStorage.removeItem('wl-admin');location.reload()};
 $('#refreshBtn').onclick=()=>{load();renderCustomers();renderContents();renderHistory()};
 if(hasAdminSession()){$('#login').classList.add('hidden');$('#app').classList.remove('hidden');load();seed();renderCustomers();renderContents();renderHistory();updateEmailBackendBadge()}
+
+const saveContentButton=$('#saveContentBtn');
+if(saveContentButton){
+  saveContentButton.addEventListener('click',()=>{
+    const original=saveContentButton.textContent;
+    saveContentButton.textContent='Salvando...';
+    saveContentButton.disabled=true;
+    setTimeout(()=>{
+      saveContentButton.disabled=false;
+      saveContentButton.textContent=original;
+    },450);
+  },true);
+}
 </script>
 <div id="adminToast" role="status" aria-live="polite"></div>
 </body></html>
