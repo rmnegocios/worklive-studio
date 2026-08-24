@@ -500,6 +500,36 @@ table td{vertical-align:middle!important}
 }
 </style>
 
+
+<style id="worklive-v18-image-editor-fix">
+/* Editor visual em 3:4. Em 100%, a imagem aparece INTEIRA.
+   O usuário só recorta quando aplica zoom e arrasta. */
+.frame-direct-editor{
+  display:flex!important;
+  justify-content:center!important;
+}
+.frame-direct-viewport{
+  width:min(100%,520px)!important;
+  height:auto!important;
+  aspect-ratio:3/4!important;
+  background:#050b12!important;
+}
+.frame-direct-viewport img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+}
+.frame-hint{
+  white-space:nowrap;
+}
+@media(max-width:620px){
+  .frame-direct-viewport{
+    width:min(100%,420px)!important;
+  }
+}
+</style>
+
 </head>
 <body>
 <section id="login" class="login">
@@ -574,7 +604,7 @@ table td{vertical-align:middle!important}
   <div class="frame-control-title">
     <div>
       <strong>Ajustar enquadramento</strong>
-      <small>Arraste a imagem dentro do quadro. Use a rodinha do mouse ou os botões + / − para dar zoom.</small>
+      <small>A imagem aparece inteira em 100%. Dê zoom e arraste para escolher exatamente o enquadramento do card 3:4.</small>
     </div>
     <div class="frame-toolbar">
       <button type="button" class="frame-icon-btn" id="frameZoomOutBtn" title="Diminuir zoom">−</button>
@@ -588,7 +618,7 @@ table td{vertical-align:middle!important}
     <div class="frame-direct-viewport" id="frameViewport">
       <img id="frameDirectImage" alt="Prévia para enquadramento">
       <div class="frame-guide"></div>
-      <div class="frame-hint" id="frameHint">Arraste para posicionar • Rodinha para zoom</div>
+      <div class="frame-hint" id="frameHint">Imagem inteira em 100% • Arraste após dar zoom</div>
     </div>
   </div>
 
@@ -1039,15 +1069,18 @@ function updateFramePreview(){
   updateFrameLabels();
   const img=$('#frameDirectImage');
   if(!img)return;
+
   const f=currentFrameValues();
 
-  /* Conversão simples: 50/50 = centro.
-     Quanto mais arrasta, mais desloca a imagem dentro do quadro. */
-  const maxShift=38*(f.mediaZoom/100);
-  const tx=((50-f.mediaPosX)/50)*maxShift;
-  const ty=((50-f.mediaPosY)/50)*maxShift;
+  /* 100% = imagem inteira visível dentro do quadro 3:4.
+     A partir daí, zoom aproxima e o arraste reposiciona. */
+  const zoom=f.mediaZoom/100;
+  const tx=((50-f.mediaPosX)/50)*42;
+  const ty=((50-f.mediaPosY)/50)*42;
 
-  img.style.transform=`translate(calc(-50% + ${tx}%),calc(-50% + ${ty}%)) scale(${f.mediaZoom/100})`;
+  img.style.objectFit='contain';
+  img.style.objectPosition='center center';
+  img.style.transform=`translate(${tx}%,${ty}%) scale(${zoom})`;
   img.style.transformOrigin='center center';
 }
 
