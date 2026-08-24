@@ -388,6 +388,11 @@ table td{vertical-align:middle!important}
 }
 </style>
 
+
+<style id="email-status-v9">
+#emailBackendBadge{font-weight:900}
+</style>
+
 </head>
 <body>
 <section id="login" class="login">
@@ -655,7 +660,9 @@ async function resendAccess(c){
    adminToast('Acesso enviado para '+c.email+'.','success');
  }catch(err){
    console.error(err);
-   adminToast('Não foi possível enviar o e-mail agora.','danger');
+   const detail=(err&&err.message)?err.message:'Falha desconhecida';
+   adminToast('Falha no envio: '+detail,'danger');
+   setTimeout(()=>alert('O acesso foi salvo, mas o e-mail não foi enviado.\n\nDetalhe retornado pelo servidor:\n'+detail),120);
  }
 }
 function handleCustomerAction(e){
@@ -666,21 +673,11 @@ function handleCustomerAction(e){
  if(!c){adminToast('Não foi possível localizar este cadastro.','danger');return}
 
  if(r){
-   adminToast('Abrindo o e-mail para reenviar o acesso…');
+   adminToast('Enviando acesso automaticamente…');
    resendAccess(c);
    return;
  }
 
- if(p){
-   const newPass=randomPassword();
-   c.access_password=newPass;
-   c.force_password_change=true;
-   saveCustomers();
-   logEvent('Nova senha temporária gerada para '+c.email,'manual');
-   adminToast('Nova senha gerada: '+newPass,'success');
-   setTimeout(()=>alert('Nova senha temporária para '+c.email+':\n\n'+newPass+'\n\nO cliente poderá trocá-la ao entrar.'),120);
-   return;
- }
 
  if(n){
    const oldExpiry=new Date(c.expires_at);
@@ -710,7 +707,7 @@ function handleCustomerAction(e){
    saveCustomers();
    logEvent('Acesso excluído: '+c.email);
    renderCustomers();
-   adminToast('Acesso excluído.','danger');
+   adminToast('Acesso excluído definitivamente.','danger');
  }
 }
 ['rowsAll','rowsAuto','rowsManual'].forEach(id=>$('#'+id).addEventListener('click',handleCustomerAction));
@@ -817,7 +814,7 @@ $('#loginForm').onsubmit=e=>{
 };
 $('#logoutBtn').onclick=()=>{sessionStorage.removeItem('wl-admin');localStorage.removeItem('wl-admin');location.reload()};
 $('#refreshBtn').onclick=()=>{load();renderCustomers();renderContents();renderHistory()};
-if(hasAdminSession()){$('#login').classList.add('hidden');$('#app').classList.remove('hidden');load();seed();renderCustomers();renderContents();renderHistory()}
+if(hasAdminSession()){$('#login').classList.add('hidden');$('#app').classList.remove('hidden');load();seed();renderCustomers();renderContents();renderHistory();updateEmailBackendBadge()}
 </script>
 <div id="adminToast" role="status" aria-live="polite"></div>
 </body></html>
