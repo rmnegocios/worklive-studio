@@ -1167,6 +1167,43 @@ main{
 }
 </style>
 
+
+<style id="worklive-client-v16-card-3x4">
+/* Cards do cliente com mídia em proporção 3:4 */
+.card .cover,
+.card-cover,
+.cover,
+.card-media,
+.content-media{
+  aspect-ratio:3/4!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+
+/* A imagem preenche o quadro 3:4 usando o enquadramento salvo pelo Admin */
+.cover-media.image,
+.card .cover img,
+.card-cover img,
+.card-media img,
+.content-media img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+}
+
+/* Mantém vídeo no mesmo quadro 3:4 quando houver */
+.cover-media.video,
+.card .cover video,
+.card-cover video,
+.card-media video,
+.content-media video{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+}
+</style>
+
 </head>
 <body>
 <section id="login" class="login-shell">
