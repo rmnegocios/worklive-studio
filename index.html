@@ -1134,6 +1134,30 @@ main{
 }
 </style>
 
+
+<style id="worklive-v14-search-autofill-fix">
+#searchInput{
+  background:#07101a!important;
+  border-color:rgba(91,145,227,.17)!important;
+  color:#eef6ff!important;
+  -webkit-text-fill-color:#eef6ff!important;
+  color-scheme:dark!important;
+}
+#searchInput:focus{
+  background:#0a1624!important;
+}
+#searchInput:-webkit-autofill,
+#searchInput:-webkit-autofill:hover,
+#searchInput:-webkit-autofill:focus,
+#searchInput:-webkit-autofill:active{
+  -webkit-text-fill-color:#eef6ff!important;
+  -webkit-box-shadow:0 0 0 1000px #07101a inset!important;
+  box-shadow:0 0 0 1000px #07101a inset!important;
+  caret-color:#eef6ff!important;
+  transition:background-color 99999s ease-out 0s!important;
+}
+</style>
+
 </head>
 <body>
 <section id="login" class="login-shell">
@@ -1170,7 +1194,7 @@ main{
 <nav class="tabs" id="tabs">
 <button class="tab active" data-filter="Todos">Todos</button><button class="tab" data-filter="Vídeo">Vídeos</button><button class="tab" data-filter="Imagem">Imagens</button><button class="tab" data-filter="Roteiro">Roteiros</button><button class="tab" data-filter="Favoritos">Favoritos</button><button class="tab" data-filter="POV">Categoria POV</button><button class="tab" data-filter="POV + Mirror Selfie">POV + Mirror Selfie</button><button class="tab" data-filter="Mirror Selfie">Mirror Selfie</button><button class="tab coming-soon" data-filter="Cabide" disabled="" aria-disabled="true">Cabide <span>(Em breve)</span></button>
 </nav>
-<div class="toolbar"><div class="search"><span>⌕</span><input id="searchInput" type="search" name="worklive_content_lookup" placeholder="Buscar conteúdos..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="search"></div><div class="counter" id="counter">25 prompts</div></div>
+<div class="toolbar"><div class="search"><span>⌕</span><input id="searchInput" type="search" name="wl_content_search_x91" placeholder="Buscar conteúdos..." autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="search" readonly></div><div class="counter" id="counter">25 prompts</div></div>
 <section class="grid" id="grid"><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_4.jpg" alt="Recriando cenário" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="1">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Recriando cenário</h3><button class="copy" data-copy="1">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="1">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_5.jpg" alt="Remover roupas/textos" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="2">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Remover roupas/textos</h3><button class="copy" data-copy="2">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="2">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_6.jpg" alt="Colocando a mão no ambiente" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="3">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Colocando a mão no ambiente</h3><button class="copy" data-copy="3">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="3">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_7.jpg" alt="Colocar roupa no ambiente" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="4">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Colocar roupa no ambiente</h3><button class="copy" data-copy="4">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="4">Ver prompt →</button></div></article><article class="card"><div class="cover package has-media"><img class="cover-media image" src="./assets/img_8.jpg" alt="Roupa no pacote" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="5">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Roupa no pacote</h3><button class="copy" data-copy="5">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="5">Ver prompt →</button></div></article><article class="card"><div class="cover package has-media"><img class="cover-media image" src="./assets/img_9.jpg" alt="Colocar embalagem do TikTok" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="6">♡</button><div class="cover-content"><div class="tool">● IA · POV</div><h3>Colocar embalagem do TikTok</h3><button class="copy" data-copy="6">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="6">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_1.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_10.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="7">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Gancho esticar a roupa</h3><button class="copy" data-copy="7">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="7">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_2.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/poster_2.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="8">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Gancho tapar câmera e pegar produto</h3><button class="copy" data-copy="8">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="8">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_3.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_11.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="10">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Gancho jogar roupa — opção 2</h3><button class="copy" data-copy="10">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="10">Ver prompt →</button></div></article><article class="card"><div class="cover package has-media"><video class="cover-media video" src="media/vid_4.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_12.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="11">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Gancho pacote transparente</h3><button class="copy" data-copy="11">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="11">Ver prompt →</button></div></article><article class="card"><div class="cover package has-media"><video class="cover-media video" src="media/vid_5.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/poster_5.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="12">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Gancho embalagem TikTok Shop</h3><button class="copy" data-copy="12">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="12">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_6.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_13.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="13">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Passar a mão na roupa</h3><button class="copy" data-copy="13">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="13">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_7.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_14.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="14">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Mostrar as peças</h3><button class="copy" data-copy="14">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="14">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_8.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_15.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="15">♡</button><div class="cover-content"><div class="tool">● FLOW · POV</div><h3>Mostrar o tecido de perto</h3><button class="copy" data-copy="15">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="15">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_16.jpg" alt="COLOCAR ROUPA NA MAO DELA" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="17">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>COLOCAR ROUPA NA MAO DELA</h3><button class="copy" data-copy="17">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="17">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_17.jpg" alt="COLOCAR ROUPA NA MODELO" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="18">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>COLOCAR ROUPA NA MODELO</h3><button class="copy" data-copy="18">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="18">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_9.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_18.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="19">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>GANCHO JOGAR ROUPA NA CAMERA</h3><button class="copy" data-copy="19">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="19">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_10.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_19.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="20">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>GANCHO TAPAR CAMERA COM A MAO</h3><button class="copy" data-copy="20">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="20">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_11.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_20.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="21">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>GANCHO ALÇA</h3><button class="copy" data-copy="21">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="21">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_12.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_21.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="22">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>FRENTE+ LADO+ CABELO</h3><button class="copy" data-copy="22">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="22">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_13.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_22.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="23">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>FRENTE+FOCO NA ROUPA</h3><button class="copy" data-copy="23">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="23">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_14.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_23.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="24">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>CTA SIMPATICA</h3><button class="copy" data-copy="24">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="24">Ver prompt →</button></div></article><article class="card"><div class="cover imagem has-media"><img class="cover-media image" src="./assets/img_24.jpg" alt="MIRROR SELFIE BÁSICO — COLOCAR ROUPA NA MODELO" loading="lazy"><div class="badge">Imagem</div><button class="fav " data-fav="25">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>MIRROR SELFIE BÁSICO — COLOCAR ROUPA NA MODELO</h3><button class="copy" data-copy="25">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="25">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_15.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_25.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="26">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>FRENTE + DETALHE REALISTA + CTA — 10 SEG</h3><button class="copy" data-copy="26">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="26">Ver prompt →</button></div></article><article class="card"><div class="cover vídeo has-media"><video class="cover-media video" src="media/vid_16.mp4" autoplay="" muted="" loop="" playsinline="" preload="none" poster="media/img_26.jpg"></video><div class="badge">Vídeo</div><button class="fav " data-fav="27">♡</button><div class="cover-content"><div class="tool">● IA · Mirror Selfie</div><h3>LADO + CTA + FRENTE + CABELO</h3><button class="copy" data-copy="27">▣ Copiar prompt</button></div></div><div class="card-footer"><span>WORKLIVE STUDIO</span><button class="open" data-open="27">Ver prompt →</button></div></article></section>
 </main>
 </div>
@@ -1217,6 +1241,48 @@ const $=s=>document.querySelector(s);
 function esc(s){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 function showToast(t='Prompt copiado!'){const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1800)}
 async function copyText(t){try{await navigator.clipboard.writeText(t);showToast()}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();showToast()}}
+
+
+let searchUserTouched=false;
+let searchAutofillGuardTimer=null;
+
+function armSearchAutofillGuard(){
+  const s=$('#searchInput');
+  if(!s)return;
+
+  searchUserTouched=false;
+  s.readOnly=true;
+  s.value='';
+  s.setAttribute('value','');
+
+  if(searchAutofillGuardTimer)clearInterval(searchAutofillGuardTimer);
+
+  let checks=0;
+  searchAutofillGuardTimer=setInterval(()=>{
+    checks++;
+    if(!searchUserTouched){
+      if(s.value){
+        s.value='';
+        s.setAttribute('value','');
+      }
+      s.readOnly=true;
+    }
+    if(checks>=40 || searchUserTouched){
+      clearInterval(searchAutofillGuardTimer);
+      searchAutofillGuardTimer=null;
+    }
+  },250);
+}
+
+function unlockSearchForUser(e){
+  const s=$('#searchInput');
+  if(!s)return;
+  searchUserTouched=true;
+  s.readOnly=false;
+  if(e && e.type==='pointerdown'){
+    setTimeout(()=>s.focus(),0);
+  }
+}
 
 function clearContentSearch(){
   const s=$('#searchInput');
@@ -1270,7 +1336,9 @@ function ensureAutoplay(){
  });
 }
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b||b.disabled||b.classList.contains('coming-soon'))return;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');activeFilter=b.dataset.filter;render()});
-$('#searchInput').addEventListener('input',render);
+$('#searchInput').addEventListener('pointerdown',unlockSearchForUser);
+$('#searchInput').addEventListener('keydown',unlockSearchForUser);
+$('#searchInput').addEventListener('input',e=>{searchUserTouched=true;render();});
 $('#grid').addEventListener('click',e=>{
  const f=e.target.closest('[data-fav]'); if(f){let id=+f.dataset.fav;favs.has(id)?favs.delete(id):favs.add(id);localStorage.setItem('worklive-studio-favs',JSON.stringify([...favs]));render();return;}
  const c=e.target.closest('[data-copy]'); if(c){let x=items.find(i=>i.id===+c.dataset.copy);copyText(x.prompt);return;}
@@ -1333,7 +1401,13 @@ function enter(){
   $('#app').classList.remove('hidden');
   $('#changePasswordBtn').classList.remove('hidden');
   document.body.style.overflow='';
-  clearContentSearchRepeatedly();
+
+  const loginEmail=$('#email');
+  const loginPassword=$('#password');
+  if(loginEmail)loginEmail.value='';
+  if(loginPassword)loginPassword.value='';
+
+  armSearchAutofillGuard();
   render();
 }
 function showDenied(message){
@@ -1505,6 +1579,13 @@ window.addEventListener('DOMContentLoaded',()=>{
   setTimeout(clearContentSearch,0);
   setTimeout(clearContentSearch,300);
   setTimeout(clearContentSearch,900);
+});
+
+window.addEventListener('pageshow',()=>{
+  const app=$('#app');
+  if(app && !app.classList.contains('hidden')){
+    armSearchAutofillGuard();
+  }
 });
 </script>
 </body></html>
