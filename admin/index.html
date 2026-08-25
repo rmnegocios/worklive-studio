@@ -394,69 +394,188 @@ table td{vertical-align:middle!important}
 </style>
 
 
-<style id="worklive-media-frame-editor-v15">
+
+<style id="worklive-media-frame-editor-v17">
 .media-frame-controls{
   border:1px solid rgba(47,135,255,.18);
   background:linear-gradient(180deg,rgba(47,135,255,.055),rgba(47,135,255,.018));
-  border-radius:14px;
+  border-radius:16px;
   padding:14px;
-  margin-top:2px;
+  margin-top:4px;
 }
 .frame-control-title{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
+  gap:14px;
   margin-bottom:13px;
 }
-.frame-control-title strong{display:block;font-size:12px;color:#eaf4ff}
-.frame-control-title small{display:block;margin-top:3px;color:#6f8aaa;font-size:10px;line-height:1.4}
-.frame-reset-btn{height:34px!important;white-space:nowrap}
-.frame-control-grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:11px;
+.frame-control-title strong{display:block;font-size:12px;color:#eef6ff}
+.frame-control-title small{
+  display:block;margin-top:4px;color:#7390b2;font-size:10px;line-height:1.45;
 }
-.frame-control-grid label{
-  display:grid;
-  gap:7px;
-  padding:10px 11px;
-  border:1px solid rgba(102,157,235,.12);
-  background:#07111c;
-  border-radius:11px;
+.frame-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.frame-icon-btn{
+  width:36px;height:36px;border-radius:10px;
+  border:1px solid rgba(102,157,235,.20);
+  background:#0b1a2a;color:#eef6ff;font-size:20px;font-weight:900;
 }
-.frame-control-grid label span{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-  color:#9bb1ca;
-  font-size:10px;
-  font-weight:800;
+.frame-icon-btn:hover{border-color:rgba(47,135,255,.46);background:#10243a}
+.frame-zoom-readout{
+  min-width:58px;text-align:center;color:#6caaff;font-size:11px;font-weight:900;
 }
-.frame-control-grid label b{color:#65aaff;font-size:10px}
-.frame-control-grid input[type=range]{
+.frame-reset-btn{height:36px!important}
+
+.frame-direct-editor{
   width:100%;
-  accent-color:#2f87ff;
 }
-.frame-tip{
-  margin-top:10px;
-  color:#6684a6;
-  font-size:10px;
-}
-#contentPreview{
+.frame-direct-viewport{
   position:relative;
-  overflow:hidden!important;
+  width:100%;
+  height:320px;
+  overflow:hidden;
+  border-radius:14px;
+  border:1px solid rgba(102,157,235,.22);
+  background:
+    linear-gradient(45deg,rgba(255,255,255,.018) 25%,transparent 25%),
+    linear-gradient(-45deg,rgba(255,255,255,.018) 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,rgba(255,255,255,.018) 75%),
+    linear-gradient(-45deg,transparent 75%,rgba(255,255,255,.018) 75%),
+    #06101a;
+  background-size:20px 20px;
+  background-position:0 0,0 10px,10px -10px,-10px 0px;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
 }
-#contentPreview img.frame-preview-image{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  will-change:transform,object-position;
+.frame-direct-viewport.dragging{cursor:grabbing}
+.frame-direct-viewport img{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-drag:none;
+  will-change:transform;
 }
+.frame-guide{
+  position:absolute;inset:0;
+  pointer-events:none;
+  border:1px solid rgba(255,255,255,.055);
+  background:
+    linear-gradient(to right,transparent 33.2%,rgba(255,255,255,.055) 33.3%,rgba(255,255,255,.055) 33.6%,transparent 33.7%,transparent 66.2%,rgba(255,255,255,.055) 66.3%,rgba(255,255,255,.055) 66.6%,transparent 66.7%),
+    linear-gradient(to bottom,transparent 33.2%,rgba(255,255,255,.055) 33.3%,rgba(255,255,255,.055) 33.6%,transparent 33.7%,transparent 66.2%,rgba(255,255,255,.055) 66.3%,rgba(255,255,255,.055) 66.6%,transparent 66.7%);
+}
+.frame-hint{
+  position:absolute;left:50%;bottom:12px;transform:translateX(-50%);
+  padding:7px 10px;border-radius:999px;
+  background:rgba(3,9,16,.76);
+  border:1px solid rgba(102,157,235,.18);
+  color:#91a9c6;font-size:10px;font-weight:750;
+  pointer-events:none;
+  backdrop-filter:blur(8px);
+}
+.frame-mini-status{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;
+}
+.frame-mini-status span{
+  padding:7px 9px;border-radius:9px;
+  background:#07111c;border:1px solid rgba(102,157,235,.12);
+  color:#7893b4;font-size:10px;
+}
+.frame-mini-status b{color:#66aaff;margin-left:4px}
+
+#contentPreview{display:none!important}
+
 @media(max-width:720px){
-  .frame-control-grid{grid-template-columns:1fr!important}
   .frame-control-title{align-items:flex-start;flex-direction:column}
+  .frame-toolbar{width:100%}
+  .frame-direct-viewport{height:300px}
+}
+@media(max-width:480px){
+  .frame-direct-viewport{height:260px}
+}
+</style>
+
+
+
+<style id="worklive-v19-editor-3x4">
+/* ===== Editor 3:4 correto ===== */
+.media-frame-controls{
+  padding:16px!important;
+}
+.frame-direct-editor{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  width:100%!important;
+  margin-top:10px!important;
+}
+.frame-direct-viewport{
+  position:relative!important;
+  width:360px!important;
+  height:480px!important;
+  max-width:100%!important;
+  aspect-ratio:3/4!important;
+  overflow:hidden!important;
+  border-radius:16px!important;
+  border:1px solid rgba(91,145,227,.24)!important;
+  background:
+    linear-gradient(45deg,rgba(255,255,255,.018) 25%,transparent 25%),
+    linear-gradient(-45deg,rgba(255,255,255,.018) 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,rgba(255,255,255,.018) 75%),
+    linear-gradient(-45deg,transparent 75%,rgba(255,255,255,.018) 75%),
+    #050b12!important;
+  background-size:22px 22px!important;
+  background-position:0 0,0 11px,11px -11px,-11px 0!important;
+  cursor:grab!important;
+  touch-action:none!important;
+  user-select:none!important;
+}
+.frame-direct-viewport.dragging{cursor:grabbing!important}
+.frame-direct-viewport img{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:auto!important;
+  height:auto!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:unset!important;
+  object-position:unset!important;
+  transform-origin:center center!important;
+  pointer-events:none!important;
+  user-select:none!important;
+  -webkit-user-drag:none!important;
+  will-change:transform!important;
+}
+.frame-guide{
+  position:absolute!important;
+  inset:0!important;
+  pointer-events:none!important;
+  z-index:3!important;
+  border:1px solid rgba(255,255,255,.05)!important;
+  background:
+    linear-gradient(to right,transparent 33.1%,rgba(255,255,255,.055) 33.2%,rgba(255,255,255,.055) 33.5%,transparent 33.6%,transparent 66.3%,rgba(255,255,255,.055) 66.4%,rgba(255,255,255,.055) 66.7%,transparent 66.8%),
+    linear-gradient(to bottom,transparent 33.1%,rgba(255,255,255,.055) 33.2%,rgba(255,255,255,.055) 33.5%,transparent 33.6%,transparent 66.3%,rgba(255,255,255,.055) 66.4%,rgba(255,255,255,.055) 66.7%,transparent 66.8%)!important;
+}
+.frame-hint{
+  z-index:4!important;
+  bottom:12px!important;
+  white-space:nowrap!important;
+}
+.frame-mini-status{
+  justify-content:center!important;
+}
+@media(max-width:520px){
+  .frame-direct-viewport{
+    width:min(86vw,330px)!important;
+    height:auto!important;
+    aspect-ratio:3/4!important;
+  }
 }
 </style>
 
@@ -529,34 +648,36 @@ table td{vertical-align:middle!important}
 <input id="contentUrl" class="full" placeholder="Ou URL da mídia">
 <div id="contentPreview" class="preview full">Prévia da mídia</div>
 
+
 <div id="mediaFrameControls" class="media-frame-controls full hidden">
   <div class="frame-control-title">
     <div>
       <strong>Ajustar enquadramento</strong>
-      <small>Personalize como a imagem aparece no card, sem alterar o arquivo original.</small>
+      <small>Este quadro é exatamente 3:4. Em 100% você vê a imagem inteira; depois dê zoom e arraste até deixar do jeito que quer.</small>
     </div>
-    <button type="button" class="secondary frame-reset-btn" id="resetMediaFrameBtn">Centralizar</button>
+    <div class="frame-toolbar">
+      <button type="button" class="frame-icon-btn" id="frameZoomOutBtn" title="Diminuir zoom">−</button>
+      <span id="mediaZoomValue" class="frame-zoom-readout">100%</span>
+      <button type="button" class="frame-icon-btn" id="frameZoomInBtn" title="Aumentar zoom">+</button>
+      <button type="button" class="secondary frame-reset-btn" id="resetMediaFrameBtn">Centralizar</button>
+    </div>
   </div>
 
-  <div class="frame-control-grid">
-    <label>
-      <span>Zoom <b id="mediaZoomValue">100%</b></span>
-      <input id="mediaZoom" type="range" min="100" max="220" value="100" step="1">
-    </label>
-
-    <label>
-      <span>Horizontal <b id="mediaPosXValue">50%</b></span>
-      <input id="mediaPosX" type="range" min="0" max="100" value="50" step="1">
-    </label>
-
-    <label>
-      <span>Vertical <b id="mediaPosYValue">50%</b></span>
-      <input id="mediaPosY" type="range" min="0" max="100" value="50" step="1">
-    </label>
+  <div class="frame-direct-editor" id="frameDirectEditor">
+    <div class="frame-direct-viewport" id="frameViewport">
+      <img id="frameDirectImage" alt="Prévia para enquadramento">
+      <div class="frame-guide"></div>
+      <div class="frame-hint" id="frameHint">Quadro 3:4 • Arraste para posicionar • +/− ou rodinha para zoom</div>
+    </div>
   </div>
 
-  <div class="frame-tip">Dica: use Horizontal e Vertical para escolher a parte mais bonita da foto e Zoom para aproximar.</div>
+  <div class="frame-mini-status">
+    <span>Zoom <b id="frameStatusZoom">100%</b></span>
+    <span>Horizontal <b id="frameStatusX">50%</b></span>
+    <span>Vertical <b id="frameStatusY">50%</b></span>
+  </div>
 </div>
+
 
 </div>
 <div class="section-actions"><button class="primary" id="saveContentBtn">Salvar conteúdo</button><button class="secondary" id="clearContentBtn">Limpar</button><button class="secondary" id="exportContentBtn">Exportar backup</button></div>
@@ -963,73 +1084,205 @@ function fileToData(file){
 }
 
 
+
+let frameState={zoom:100,x:50,y:50};
+let frameDrag=null;
+let framePinch=null;
+
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+
 function currentFrameValues(){
   return {
-    mediaZoom: Math.max(100, Math.min(220, +($('#mediaZoom')?.value||100))),
-    mediaPosX: Math.max(0, Math.min(100, +($('#mediaPosX')?.value||50))),
-    mediaPosY: Math.max(0, Math.min(100, +($('#mediaPosY')?.value||50)))
+    mediaZoom:Math.round(clamp(frameState.zoom,100,220)),
+    mediaPosX:Math.round(clamp(frameState.x,0,100)),
+    mediaPosY:Math.round(clamp(frameState.y,0,100))
   };
 }
+
 function setFrameControls(data){
-  const zoom=Math.max(100,Math.min(220,+((data&&data.mediaZoom)||100)));
-  const x=Math.max(0,Math.min(100,+((data&&data.mediaPosX)??50)));
-  const y=Math.max(0,Math.min(100,+((data&&data.mediaPosY)??50)));
-  if($('#mediaZoom'))$('#mediaZoom').value=zoom;
-  if($('#mediaPosX'))$('#mediaPosX').value=x;
-  if($('#mediaPosY'))$('#mediaPosY').value=y;
-  updateFrameLabels();
+  frameState.zoom=clamp(+((data&&data.mediaZoom)||100),100,220);
+  frameState.x=clamp(+((data&&data.mediaPosX)??50),0,100);
+  frameState.y=clamp(+((data&&data.mediaPosY)??50),0,100);
+  updateFramePreview();
 }
+
 function updateFrameLabels(){
-  if($('#mediaZoomValue'))$('#mediaZoomValue').textContent=($('#mediaZoom')?.value||100)+'%';
-  if($('#mediaPosXValue'))$('#mediaPosXValue').textContent=($('#mediaPosX')?.value||50)+'%';
-  if($('#mediaPosYValue'))$('#mediaPosYValue').textContent=($('#mediaPosY')?.value||50)+'%';
+  const f=currentFrameValues();
+  if($('#mediaZoomValue'))$('#mediaZoomValue').textContent=f.mediaZoom+'%';
+  if($('#frameStatusZoom'))$('#frameStatusZoom').textContent=f.mediaZoom+'%';
+  if($('#frameStatusX'))$('#frameStatusX').textContent=f.mediaPosX+'%';
+  if($('#frameStatusY'))$('#frameStatusY').textContent=f.mediaPosY+'%';
 }
+
 function updateFramePreview(){
   updateFrameLabels();
-  const img=$('#contentPreview img');
-  if(!img)return;
+  const img=$('#frameDirectImage');
+  const vp=$('#frameViewport');
+  if(!img||!vp||!img.naturalWidth||!img.naturalHeight)return;
+
   const f=currentFrameValues();
-  img.style.objectPosition=f.mediaPosX+'% '+f.mediaPosY+'%';
-  img.style.transform='scale('+(f.mediaZoom/100)+')';
-  img.style.transformOrigin=f.mediaPosX+'% '+f.mediaPosY+'%';
+  const vw=vp.clientWidth||360;
+  const vh=vp.clientHeight||480;
+
+  /* Em 100%, a imagem inteira cabe dentro do quadro 3:4. */
+  const fitScale=Math.min(vw/img.naturalWidth,vh/img.naturalHeight);
+  const scale=fitScale*(f.mediaZoom/100);
+
+  /* 50/50 = centralizado. 0-100 move dentro do quadro. */
+  const fittedW=img.naturalWidth*scale;
+  const fittedH=img.naturalHeight*scale;
+  const freeX=Math.max(vw,fittedW)*0.55;
+  const freeY=Math.max(vh,fittedH)*0.55;
+
+  const tx=((50-f.mediaPosX)/50)*freeX;
+  const ty=((50-f.mediaPosY)/50)*freeY;
+
+  img.style.width=img.naturalWidth+'px';
+  img.style.height=img.naturalHeight+'px';
+  img.style.transform=`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(${scale})`;
+  img.style.transformOrigin='center center';
 }
+
+function setFrameImageSource(src){
+  const img=$('#frameDirectImage');
+  if(!img)return;
+  if(src){
+    img.onload=()=>updateFramePreview();
+    img.src=src;
+    img.style.display='block';
+    if(img.complete)updateFramePreview();
+  }else{
+    img.removeAttribute('src');
+    img.style.display='none';
+  }
+}
+
 function updateFrameControlsVisibility(){
   const box=$('#mediaFrameControls');
   if(!box)return;
   const type=$('#contentType')?.value;
-  const hasMedia=!!(contentMediaData||$('#contentUrl')?.value.trim()||$('#contentPreview img'));
-  box.classList.toggle('hidden',type!=='Imagem'||!hasMedia);
+  const src=contentMediaData||$('#contentUrl')?.value.trim()||'';
+  const show=type==='Imagem' && !!src;
+  box.classList.toggle('hidden',!show);
+  if(show)setFrameImageSource(src);
 }
 
-function clearContentForm(){$('#contentId').value='';$('#contentTitle').value='';$('#contentType').value='Imagem';$('#contentCategory').value='';$('#contentTool').value='IA';$('#contentPrompt').value='';$('#contentUrl').value='';$('#contentFile').value='';contentMediaData='';$('#contentPreview').innerHTML='Prévia da mídia';setFrameControls({mediaZoom:100,mediaPosX:50,mediaPosY:50});updateFrameControlsVisibility()}
+function frameZoomBy(delta){
+  frameState.zoom=clamp(frameState.zoom+delta,100,220);
+  updateFramePreview();
+}
+
+function beginFrameDrag(e){
+  if(e.pointerType==='touch'){
+    const vp=$('#frameViewport');
+    if(vp && vp._activePointers){
+      vp._activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(vp._activePointers.size===2){
+        const pts=[...vp._activePointers.values()];
+        framePinch={
+          dist:Math.hypot(pts[1].x-pts[0].x,pts[1].y-pts[0].y),
+          zoom:frameState.zoom
+        };
+        frameDrag=null;
+        return;
+      }
+    }
+  }
+
+  frameDrag={
+    pointerId:e.pointerId,
+    startX:e.clientX,startY:e.clientY,
+    x:frameState.x,y:frameState.y
+  };
+  $('#frameViewport')?.classList.add('dragging');
+  try{$('#frameViewport')?.setPointerCapture(e.pointerId)}catch(_){}
+}
+
+function moveFrameDrag(e){
+  const vp=$('#frameViewport');
+  if(!vp)return;
+
+  if(e.pointerType==='touch' && vp._activePointers){
+    if(vp._activePointers.has(e.pointerId)){
+      vp._activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    }
+    if(vp._activePointers.size===2 && framePinch){
+      const pts=[...vp._activePointers.values()];
+      const dist=Math.hypot(pts[1].x-pts[0].x,pts[1].y-pts[0].y);
+      if(framePinch.dist>0){
+        frameState.zoom=clamp(framePinch.zoom*(dist/framePinch.dist),100,220);
+        updateFramePreview();
+      }
+      e.preventDefault();
+      return;
+    }
+  }
+
+  if(!frameDrag || frameDrag.pointerId!==e.pointerId)return;
+
+  const rect=vp.getBoundingClientRect();
+  const dx=e.clientX-frameDrag.startX;
+  const dy=e.clientY-frameDrag.startY;
+
+  frameState.x=clamp(frameDrag.x-(dx/rect.width)*70,0,100);
+  frameState.y=clamp(frameDrag.y-(dy/rect.height)*70,0,100);
+  updateFramePreview();
+  e.preventDefault();
+}
+
+function endFrameDrag(e){
+  const vp=$('#frameViewport');
+  if(vp && vp._activePointers){
+    vp._activePointers.delete(e.pointerId);
+    if(vp._activePointers.size<2)framePinch=null;
+  }
+  if(frameDrag && frameDrag.pointerId===e.pointerId)frameDrag=null;
+  vp?.classList.remove('dragging');
+}
+
+function initDirectFrameEditor(){
+  const vp=$('#frameViewport');
+  if(!vp || vp.dataset.bound==='1')return;
+  vp.dataset.bound='1';
+  vp._activePointers=new Map();
+
+  vp.addEventListener('pointerdown',beginFrameDrag);
+  vp.addEventListener('pointermove',moveFrameDrag);
+  vp.addEventListener('pointerup',endFrameDrag);
+  vp.addEventListener('pointercancel',endFrameDrag);
+  vp.addEventListener('wheel',e=>{
+    e.preventDefault();
+    frameZoomBy(e.deltaY<0?8:-8);
+  },{passive:false});
+
+  $('#frameZoomInBtn')?.addEventListener('click',()=>frameZoomBy(10));
+  $('#frameZoomOutBtn')?.addEventListener('click',()=>frameZoomBy(-10));
+  $('#resetMediaFrameBtn')?.addEventListener('click',()=>{
+    setFrameControls({mediaZoom:100,mediaPosX:50,mediaPosY:50});
+  });
+}
+
+function clearContentForm(){$('#contentId').value='';$('#contentTitle').value='';$('#contentType').value='Imagem';$('#contentCategory').value='';$('#contentTool').value='IA';$('#contentPrompt').value='';$('#contentUrl').value='';$('#contentFile').value='';contentMediaData='';$('#contentPreview').innerHTML='Prévia da mídia';setFrameControls({mediaZoom:100,mediaPosX:50,mediaPosY:50});setFrameImageSource('');updateFrameControlsVisibility()}
 function previewContent(src,type){
  const p=$('#contentPreview');
- if(!src){
-   p.innerHTML=type==='Roteiro'?'<div style="font-size:30px;color:#56a4ff;font-weight:900">ROTEIRO</div>':'Prévia da mídia';
-   updateFrameControlsVisibility();
-   return;
+ if(p){
+   if(!src){
+     p.innerHTML=type==='Roteiro'?'<div style="font-size:30px;color:#56a4ff;font-weight:900">ROTEIRO</div>':'Prévia da mídia';
+   }else if(type==='Vídeo'){
+     p.innerHTML=`<video src="${esc(src)}" autoplay muted loop playsinline controls></video>`;
+   }else{
+     p.innerHTML='';
+   }
  }
- if(type==='Vídeo'){
-   p.innerHTML=`<video src="${esc(src)}" autoplay muted loop playsinline controls></video>`;
- }else{
-   p.innerHTML=`<img class="frame-preview-image" src="${esc(src)}" alt="">`;
-   updateFramePreview();
- }
- const v=p.querySelector('video');if(v){v.muted=true;v.play().catch(()=>{})}
  updateFrameControlsVisibility();
+ if(type==='Imagem'&&src)setFrameImageSource(src);
+ const v=p&&p.querySelector('video');if(v){v.muted=true;v.play().catch(()=>{})}
 }
 $('#contentFile').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;contentMediaData=await fileToData(f);previewContent(contentMediaData,$('#contentType').value)};
 $('#contentUrl').oninput=e=>{previewContent(e.target.value.trim(),$('#contentType').value);updateFrameControlsVisibility()};
 $('#contentType').onchange=()=>{previewContent(contentMediaData||$('#contentUrl').value.trim(),$('#contentType').value);updateFrameControlsVisibility()};
 
-['mediaZoom','mediaPosX','mediaPosY'].forEach(id=>{
- const el=$('#'+id);
- if(el)el.addEventListener('input',updateFramePreview);
-});
-if($('#resetMediaFrameBtn'))$('#resetMediaFrameBtn').onclick=()=>{
- setFrameControls({mediaZoom:100,mediaPosX:50,mediaPosY:50});
- updateFramePreview();
-};
+
 
 
 
@@ -1080,6 +1333,7 @@ function saveContent(){
  adminToast(idx>=0?'Conteúdo atualizado com sucesso.':'Conteúdo salvo com sucesso.','success');
 }
 $('#saveContentBtn').onclick=saveContent;
+initDirectFrameEditor();
 $('#clearContentBtn').onclick=clearContentForm;
 $('#exportContentBtn').onclick=()=>{const blob=new Blob([JSON.stringify(contents,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='worklive-studio-conteudos.json';a.click();URL.revokeObjectURL(a.href)};
 
