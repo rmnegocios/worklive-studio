@@ -748,19 +748,27 @@ function saveEvents(){localStorage.setItem(EVENT_KEY,JSON.stringify(events))}
 
 function saveContents(){
   const payload=JSON.stringify(contents);
+
   try{
     localStorage.setItem(CONTENT_KEY,payload);
     return true;
-  }catch(err){
-    console.error('Falha ao salvar conteúdos:',err);
+  }catch(firstErr){
+    console.warn('Primeira tentativa de salvar conteúdos falhou:',firstErr);
 
-    if(err && (err.name==='QuotaExceededError' || err.code===22 || err.code===1014)){
-      adminToast('Armazenamento cheio. A imagem ficou grande demais para o navegador.','danger');
-      alert('Não foi possível salvar porque o armazenamento local do navegador está cheio.\\n\\nTente novamente com esta versão: as novas imagens serão comprimidas automaticamente.');
-    }else{
-      adminToast('Erro ao salvar o conteúdo.','danger');
-      alert('Não foi possível salvar o conteúdo.\\n\\n'+(err&&err.message?err.message:String(err)));
+    // Uma versão antiga podia deixar o próprio CONTENT_KEY enorme por conter Base64.
+    // Se o novo payload já está pequeno, removemos somente a cópia antiga dessa chave e tentamos novamente.
+    try{
+      if(payload.length < 1500000){
+        localStorage.removeItem(CONTENT_KEY);
+        localStorage.setItem(CONTENT_KEY,payload);
+        return true;
+      }
+    }catch(secondErr){
+      console.error('Segunda tentativa de salvar conteúdos falhou:',secondErr);
     }
+
+    adminToast('Ainda há dados antigos grandes no navegador. A ferramenta tentou limpar automaticamente.','danger');
+    alert('O navegador ainda está com dados antigos muito grandes salvos.\\n\\nClique em OK e tente salvar novamente. Esta versão move imagens e vídeos para o armazenamento de mídia do navegador automaticamente.');
     return false;
   }
 }
@@ -1096,6 +1104,50 @@ async function deleteMediaBlob(ref){
     db.close();
   }catch(e){console.warn(e)}
 }
+
+async function legacyDataUrlToBlob(dataUrl){
+  const response=await fetch(dataUrl);
+  if(!response.ok) throw new Error('Falha ao converter mídia antiga');
+  return await response.blob();
+}
+
+let legacyMigrationPromise=null;
+async function migrateLegacyMediaToIndexedDB(){
+  if(legacyMigrationPromise) return legacyMigrationPromise;
+
+  legacyMigrationPromise=(async()=>{
+    let changed=false;
+
+    for(const item of contents){
+      const ref=String(item&&item.media||'');
+      if(!ref.startsWith('data:')) continue;
+
+      try{
+        const blob=await legacyDataUrlToBlob(ref);
+        const key='legacy-'+String(item.id||Date.now())+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
+        item.media=await putMediaBlob(key,blob);
+        changed=true;
+      }catch(err){
+        console.warn('Não foi possível migrar uma mídia antiga:',err);
+      }
+    }
+
+    if(changed){
+      const payload=JSON.stringify(contents);
+      try{
+        localStorage.removeItem(CONTENT_KEY);
+        localStorage.setItem(CONTENT_KEY,payload);
+      }catch(err){
+        console.warn('Migração concluída, mas os metadados não puderam ser gravados ainda:',err);
+      }
+      renderContents();
+    }
+
+    return changed;
+  })().finally(()=>{legacyMigrationPromise=null});
+
+  return legacyMigrationPromise;
+}
 function setTempPreviewUrl(file){
   if(contentMediaPreviewUrl && contentMediaPreviewUrl.startsWith('blob:')){try{URL.revokeObjectURL(contentMediaPreviewUrl)}catch(_){}}
   contentMediaPreviewUrl=URL.createObjectURL(file);
@@ -1227,7 +1279,7 @@ function updateFrameControlsVisibility(){
   const box=$('#mediaFrameControls');
   if(!box)return;
   const type=$('#contentType')?.value;
-  const src=contentMediaData||$('#contentUrl')?.value.trim()||'';
+  const src=contentMediaPreviewUrl||contentMediaData||$('#contentUrl')?.value.trim()||'';
   const show=type==='Imagem' && !!src;
   box.classList.toggle('hidden',!show);
   if(show)setFrameImageSource(src);
@@ -1344,7 +1396,24 @@ function previewContent(src,type){
  if(type==='Imagem'&&src)setFrameImageSource(src);
  const v=p&&p.querySelector('video');if(v){v.muted=true;v.play().catch(()=>{})}
 }
-$('#contentFile').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;contentMediaFile=f;contentMediaData='';$('#contentUrl').value='';const src=setTempPreviewUrl(f);previewContent(src,$('#contentType').value)};
+$('#contentFile').onchange=async e=>{
+  const f=e.target.files&&e.target.files[0];
+  if(!f)return;
+
+  contentMediaFile=f;
+  contentMediaData='';
+  $('#contentUrl').value='';
+
+  if(f.type&&f.type.startsWith('video/')){
+    $('#contentType').value='Vídeo';
+  }else if(f.type&&f.type.startsWith('image/')){
+    $('#contentType').value='Imagem';
+  }
+
+  const src=setTempPreviewUrl(f);
+  previewContent(src,$('#contentType').value);
+  updateFrameControlsVisibility();
+};
 $('#contentUrl').oninput=e=>{previewContent(e.target.value.trim(),$('#contentType').value);updateFrameControlsVisibility()};
 $('#contentType').onchange=()=>{previewContent(contentMediaPreviewUrl||contentMediaData||$('#contentUrl').value.trim(),$('#contentType').value);updateFrameControlsVisibility()};
 
@@ -1353,6 +1422,7 @@ $('#contentType').onchange=()=>{previewContent(contentMediaPreviewUrl||contentMe
 
 
 async function saveContent(){
+ await migrateLegacyMediaToIndexedDB();
  const id=+$('#contentId').value||Date.now();
  const old=contents.find(x=>x.id===id);
  const type=$('#contentType').value;
@@ -1508,11 +1578,17 @@ $('#loginForm').onsubmit=e=>{
    $('#login').classList.add('hidden');
    $('#app').classList.remove('hidden');
    load();seed();renderCustomers();renderContents();renderHistory();updateEmailBackendBadge();
+   migrateLegacyMediaToIndexedDB().catch(err=>console.warn('Migração automática:',err));
  }else $('#err').textContent='E-mail ou senha inválidos.';
 };
 $('#logoutBtn').onclick=()=>{sessionStorage.removeItem('wl-admin');localStorage.removeItem('wl-admin');location.reload()};
 $('#refreshBtn').onclick=()=>{load();renderCustomers();renderContents();renderHistory()};
-if(hasAdminSession()){$('#login').classList.add('hidden');$('#app').classList.remove('hidden');load();seed();renderCustomers();renderContents();renderHistory();updateEmailBackendBadge()}
+if(hasAdminSession()){
+  $('#login').classList.add('hidden');
+  $('#app').classList.remove('hidden');
+  load();seed();renderCustomers();renderContents();renderHistory();updateEmailBackendBadge();
+  migrateLegacyMediaToIndexedDB().catch(err=>console.warn('Migração automática:',err));
+}
 
 const saveContentButton=$('#saveContentBtn');
 if(saveContentButton){
