@@ -757,26 +757,17 @@ function randomPassword(){
 function load(){
  try{customers=JSON.parse(localStorage.getItem(CUSTOMER_KEY)||'[]')}catch(e){customers=[]}
  try{events=JSON.parse(localStorage.getItem(EVENT_KEY)||'[]')}catch(e){events=[]}
- try{const x=localStorage.getItem(CONTENT_KEY);contents=x?JSON.parse(x):JSON.parse(JSON.stringify(defaultItems))}catch(e){contents=JSON.parse(JSON.stringify(defaultItems))}
+ try{const x=localStorage.getItem(CONTENT_KEY);contents=x?JSON.parse(x):[]}catch(e){contents=[]}
 
-/* WORKLIVE AUTO-REPAIR: restaura títulos/prompts originais sem apagar mídias recuperadas */
-(function repairRecoveredMetadata(){
+/* WORKLIVE v30: NÃO mistura mais cards-modelo com mídias recuperadas.
+   Importante: associação por posição/índice foi removida porque ela ligava títulos/prompts
+   de demonstração às mídias erradas. Dados existentes são preservados como estão; nenhum
+   defaultItem é injetado automaticamente na biblioteca. */
+(function stopFalseMetadataAssociation(){
  try{
-  if(!Array.isArray(contents)||!Array.isArray(defaultItems)) return;
-  let changed=false;
-  contents=contents.map((item,i)=>{
-   const original=defaultItems[i];
-   if(!original) return item;
-   const recovered = item && (item.category==='Recuperado' || /^Conteúdo Recuperado/i.test(item.title||'') || /Conteúdo recuperado automaticamente/i.test(item.prompt||''));
-   if(!recovered) return item;
-   changed=true;
-   return {...original,...item,title:original.title,type:original.type,category:original.category,tool:original.tool,prompt:original.prompt,media:item.media||original.media,poster:item.poster||original.poster};
-  });
-  if(changed){
-   localStorage.setItem(CONTENT_KEY,JSON.stringify(contents));
-   console.log('✅ WORKLIVE: títulos e prompts originais restaurados; mídias recuperadas preservadas.');
-  }
- }catch(e){console.error('WORKLIVE metadata repair',e)}
+   if(!Array.isArray(contents)) contents=[];
+   console.log('✅ WORKLIVE v30: associação automática por índice desativada. Cards-modelo não serão reinseridos.');
+ }catch(e){console.error('WORKLIVE v30 metadata guard',e)}
 })();
 }
 function saveCustomers(){localStorage.setItem(CUSTOMER_KEY,JSON.stringify(customers))}
