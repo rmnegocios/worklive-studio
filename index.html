@@ -1168,39 +1168,100 @@ main{
 </style>
 
 
-<style id="worklive-client-v16-card-3x4">
-/* Cards do cliente com mídia em proporção 3:4 */
-.card .cover,
-.card-cover,
-.cover,
-.card-media,
-.content-media{
-  aspect-ratio:3/4!important;
-  height:auto!important;
+<style id="worklive-card-framing-v16">
+/* V16 — o card da tela inicial usa exatamente o mesmo quadro 3:4 do ajustador.
+   A imagem parte inteira (contain) e recebe o zoom/posição salvos no prompt. */
+.card .cover{
+  aspect-ratio:3 / 4!important;
   min-height:0!important;
-  overflow:hidden!important;
+  background:#07101a!important;
 }
-
-/* A imagem preenche o quadro 3:4 usando o enquadramento salvo pelo Admin */
-.cover-media.image,
-.card .cover img,
-.card-cover img,
-.card-media img,
-.content-media img{
+.card .cover.has-media{
+  background:#07101a!important;
+}
+.card .cover-media.image{
+  position:absolute!important;
+  inset:0!important;
   width:100%!important;
   height:100%!important;
-  object-fit:cover!important;
+  object-fit:contain!important;
+  background:#07101a!important;
+  will-change:transform,object-position!important;
 }
-
-/* Mantém vídeo no mesmo quadro 3:4 quando houver */
-.cover-media.video,
-.card .cover video,
-.card-cover video,
-.card-media video,
-.content-media video{
+/* Mantém o conteúdo legível sem alterar o enquadramento escolhido. */
+.card .cover:before{
+  z-index:1!important;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 42%,rgba(0,0,0,.12) 56%,rgba(0,0,0,.92) 82%,rgba(0,0,0,.99) 100%)!important;
+  pointer-events:none!important;
+}
+.card .cover-content{
+  z-index:2!important;
   width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
+}
+.card .cover h3{
+  margin:0 0 14px!important;
+}
+.card .copy{
+  position:relative!important;
+  z-index:3!important;
+}
+</style>
+
+
+<style id="worklive-image-viewer-style">
+/* ===== WORKLIVE STUDIO — VISUALIZADOR DE IMAGEM ===== */
+.cover-media.image{cursor:zoom-in}
+.image-viewer{
+  position:fixed;inset:0;z-index:99999;display:grid;place-items:center;
+  padding:22px;background:rgba(2,7,14,.92);backdrop-filter:blur(10px)
+}
+.image-viewer.hidden{display:none!important}
+.image-viewer-box{
+  width:min(980px,96vw);max-height:94vh;display:flex;flex-direction:column;
+  background:#081321;border:1px solid #173452;border-radius:22px;overflow:hidden;
+  box-shadow:0 34px 120px rgba(0,0,0,.7)
+}
+.image-viewer-head{
+  min-height:58px;display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:10px 12px 10px 18px;border-bottom:1px solid #173452
+}
+.image-viewer-title{
+  min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:#fff;font-size:14px;font-weight:800
+}
+.image-viewer-close{
+  flex:0 0 auto;width:40px;height:40px;border-radius:12px;border:1px solid #244b70;
+  background:#0b1b2c;color:#fff;font-size:22px;line-height:1
+}
+.image-viewer-stage{
+  position:relative;display:grid;place-items:center;min-height:260px;
+  max-height:calc(94vh - 132px);padding:14px;background:#030912;overflow:auto
+}
+.image-viewer-stage img{
+  display:block;max-width:100%;max-height:calc(94vh - 160px);width:auto;height:auto;
+  object-fit:contain;border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.45);
+  user-select:none;-webkit-user-drag:none
+}
+.image-viewer-actions{
+  display:flex;justify-content:flex-end;gap:10px;padding:12px;
+  border-top:1px solid #173452;background:#081321
+}
+.image-viewer-actions button{
+  min-height:42px;padding:0 18px;border-radius:12px;font-weight:900
+}
+.image-viewer-copy{
+  border:1px solid #2d70ad;background:#0e2740;color:#fff
+}
+.image-viewer-download{
+  border:0;background:linear-gradient(135deg,#1f7cff,#0d5fd7);color:#fff
+}
+@media(max-width:600px){
+  .image-viewer{padding:8px}
+  .image-viewer-box{width:100%;max-height:98vh;border-radius:18px}
+  .image-viewer-stage{max-height:calc(98vh - 132px);padding:8px}
+  .image-viewer-stage img{max-height:calc(98vh - 155px)}
+  .image-viewer-actions{display:grid;grid-template-columns:1fr 1fr}
+  .image-viewer-actions button{width:100%;padding:0 10px}
 }
 </style>
 
@@ -1638,5 +1699,152 @@ window.addEventListener('pageshow',()=>{
   }
 });
 </script>
+
+<div id="workliveImageViewer" class="image-viewer hidden" aria-hidden="true">
+  <div class="image-viewer-box" role="dialog" aria-modal="true" aria-labelledby="workliveImageViewerTitle">
+    <div class="image-viewer-head">
+      <div id="workliveImageViewerTitle" class="image-viewer-title">Imagem</div>
+      <button id="workliveImageViewerClose" class="image-viewer-close" type="button" aria-label="Fechar">×</button>
+    </div>
+    <div class="image-viewer-stage">
+      <img id="workliveImageViewerImg" alt="">
+    </div>
+    <div class="image-viewer-actions">
+      <button id="workliveImageViewerCopy" class="image-viewer-copy" type="button">▣ Copiar imagem</button>
+      <button id="workliveImageViewerDownload" class="image-viewer-download" type="button">↓ Baixar imagem</button>
+    </div>
+  </div>
+</div>
+
+
+<script id="worklive-image-viewer-script">
+(function(){
+  const viewer = document.getElementById('workliveImageViewer');
+  const viewerImg = document.getElementById('workliveImageViewerImg');
+  const viewerTitle = document.getElementById('workliveImageViewerTitle');
+  const closeBtn = document.getElementById('workliveImageViewerClose');
+  const copyBtn = document.getElementById('workliveImageViewerCopy');
+  const downloadBtn = document.getElementById('workliveImageViewerDownload');
+
+  if(!viewer || !viewerImg) return;
+
+  let activeImage = null;
+  let activeTitle = 'imagem';
+
+  function safeFileName(name){
+    return (name || 'imagem')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^\w\-]+/g,'-')
+      .replace(/^-+|-+$/g,'')
+      .slice(0,80) || 'imagem';
+  }
+
+  function getTitleFromCard(img){
+    const card = img.closest('.card');
+    const title = card && card.querySelector('.cover-content h3');
+    return title ? title.textContent.trim() : (img.alt || 'Imagem');
+  }
+
+  function openViewer(img){
+    activeImage = img;
+    activeTitle = getTitleFromCard(img);
+    viewerTitle.textContent = activeTitle;
+    viewerImg.src = img.currentSrc || img.src;
+    viewerImg.alt = img.alt || activeTitle;
+    viewer.classList.remove('hidden');
+    viewer.setAttribute('aria-hidden','false');
+    document.documentElement.style.overflow = 'hidden';
+  }
+
+  function closeViewer(){
+    viewer.classList.add('hidden');
+    viewer.setAttribute('aria-hidden','true');
+    viewerImg.removeAttribute('src');
+    document.documentElement.style.overflow = '';
+    activeImage = null;
+  }
+
+  async function imageToPngBlob(img){
+    if(!img.complete) await img.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img,0,0);
+    return await new Promise((resolve,reject)=>{
+      canvas.toBlob(blob=>blob ? resolve(blob) : reject(new Error('Não foi possível preparar a imagem.')),'image/png',1);
+    });
+  }
+
+  async function copyImage(){
+    try{
+      if(!navigator.clipboard || typeof ClipboardItem === 'undefined'){
+        throw new Error('Clipboard de imagem indisponível');
+      }
+      const blob = await imageToPngBlob(viewerImg);
+      await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+      if(typeof showToast === 'function') showToast('Imagem copiada');
+    }catch(err){
+      // Navegadores podem bloquear cópia de imagem em file:// ou fora de HTTPS.
+      // Mantém o visualizador aberto e orienta o usuário sem quebrar a ferramenta.
+      if(typeof showToast === 'function') showToast('Use Baixar imagem neste navegador');
+      else alert('Seu navegador bloqueou a cópia direta. Use “Baixar imagem”.');
+    }
+  }
+
+  async function downloadImage(){
+    try{
+      const src = viewerImg.currentSrc || viewerImg.src;
+      let href = src;
+      let revoke = false;
+
+      try{
+        const response = await fetch(src);
+        if(response.ok){
+          const blob = await response.blob();
+          href = URL.createObjectURL(blob);
+          revoke = true;
+        }
+      }catch(_){}
+
+      const extMatch = (src.split('?')[0].match(/\.([a-zA-Z0-9]{2,5})$/) || []);
+      const ext = extMatch[1] || 'png';
+      const a = document.createElement('a');
+      a.href = href;
+      a.download = safeFileName(activeTitle) + '.' + ext;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      if(revoke) setTimeout(()=>URL.revokeObjectURL(href),1500);
+      if(typeof showToast === 'function') showToast('Download iniciado');
+    }catch(err){
+      if(typeof showToast === 'function') showToast('Não foi possível baixar a imagem');
+    }
+  }
+
+  // Clique diretamente na FOTO do card abre o visualizador.
+  // Os botões de favorito, copiar prompt e ver prompt continuam funcionando normalmente.
+  document.addEventListener('click',function(e){
+    const img = e.target.closest('img.cover-media.image');
+    if(img && img.closest('#grid')){
+      e.preventDefault();
+      e.stopPropagation();
+      openViewer(img);
+      return;
+    }
+
+    if(e.target === viewer) closeViewer();
+  },true);
+
+  closeBtn.addEventListener('click',closeViewer);
+  copyBtn.addEventListener('click',copyImage);
+  downloadBtn.addEventListener('click',downloadImage);
+
+  document.addEventListener('keydown',function(e){
+    if(e.key === 'Escape' && !viewer.classList.contains('hidden')) closeViewer();
+  });
+})();
+</script>
+
 </body></html>
 <!-- Cliente WorkLive Studio: administração removida desta interface. -->
