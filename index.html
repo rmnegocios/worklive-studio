@@ -1291,6 +1291,37 @@ main{
 }
 </style>
 
+
+<style id="worklive-cards-9x16-final">
+/* Todos os cards/banners passam a usar 9:16 */
+.card .cover{
+  aspect-ratio:9 / 16 !important;
+  height:auto !important;
+  min-height:0 !important;
+  background:#07101a !important;
+}
+.card .cover.has-media{
+  background:#07101a !important;
+}
+.card .cover-media.image,
+.card .cover-media.video{
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  background:#07101a !important;
+}
+.card .cover:before{
+  z-index:1 !important;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 52%,rgba(0,0,0,.12) 64%,rgba(0,0,0,.90) 84%,rgba(0,0,0,.99) 100%) !important;
+  pointer-events:none !important;
+}
+.card .cover-content{
+  z-index:2 !important;
+}
+</style>
+
 </head>
 <body>
 <section id="login" class="login-shell">
