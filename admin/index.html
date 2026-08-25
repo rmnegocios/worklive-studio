@@ -656,7 +656,7 @@ table td{vertical-align:middle!important}
 <input id="contentId" type="hidden">
 <div class="form-grid">
 <input id="contentTitle" class="full" placeholder="Título">
-<select id="contentType"><option>Imagem</option><option>Vídeo</option><option>Roteiro</option></select>
+<select id="contentType"><option>Imagem</option><option>Vídeo</option><option>Roteiro</option><option>Banner</option></select>
 <input id="contentCategory" placeholder="Categoria: POV, Mirror Selfie...">
 <input id="contentTool" placeholder="Ferramenta: IA, FLOW..." value="IA">
 <textarea id="contentPrompt" class="full" placeholder="Cole aqui o prompt ou roteiro completo..."></textarea>
@@ -1325,7 +1325,7 @@ function updateFrameControlsVisibility(){
   if(!box)return;
   const type=$('#contentType')?.value;
   const src=contentMediaPreviewUrl||contentMediaData||$('#contentUrl')?.value.trim()||'';
-  const show=(type==='Imagem'||type==='Vídeo'||type==='Roteiro') && !!src;
+  const show=(type==='Imagem'||type==='Vídeo'||type==='Roteiro'||type==='Banner') && !!src;
   box.classList.toggle('hidden',!show);
   if(show)setFrameMediaSource(src);
 }
@@ -1441,7 +1441,7 @@ function previewContent(src,type){
    }
  }
  updateFrameControlsVisibility();
- if((type==='Imagem'||type==='Vídeo'||type==='Roteiro')&&src)setFrameMediaSource(src);
+ if((type==='Imagem'||type==='Vídeo'||type==='Roteiro'||type==='Banner')&&src)setFrameMediaSource(src);
  const v=p&&p.querySelector('video');if(v){v.muted=true;v.play().catch(()=>{})}
 }
 $('#contentFile').onchange=async e=>{
@@ -1456,7 +1456,7 @@ $('#contentFile').onchange=async e=>{
 
   // Se estiver cadastrando um Roteiro, preserve o tipo Roteiro.
   // A imagem escolhida será usada como capa/banner do roteiro.
-  if(selectedType!=='Roteiro'){
+  if(selectedType!=='Roteiro' && selectedType!=='Banner'){
     if(f.type&&f.type.startsWith('video/')){
       $('#contentType').value='Vídeo';
     }else if(f.type&&f.type.startsWith('image/')){
@@ -1521,9 +1521,9 @@ async function saveContent(){
    tool:$('#contentTool').value.trim()||'IA',
    prompt,
    media,
-   mediaZoom:(type==='Imagem'||type==='Vídeo'||type==='Roteiro')?frame.mediaZoom:100,
-   mediaPosX:(type==='Imagem'||type==='Vídeo'||type==='Roteiro')?frame.mediaPosX:50,
-   mediaPosY:(type==='Imagem'||type==='Vídeo'||type==='Roteiro')?frame.mediaPosY:50
+   mediaZoom:(type==='Imagem'||type==='Vídeo'||type==='Roteiro'||type==='Banner')?frame.mediaZoom:100,
+   mediaPosX:(type==='Imagem'||type==='Vídeo'||type==='Roteiro'||type==='Banner')?frame.mediaPosX:50,
+   mediaPosY:(type==='Imagem'||type==='Vídeo'||type==='Roteiro'||type==='Banner')?frame.mediaPosY:50
  };
 
  const backup=[...contents];
@@ -1596,12 +1596,12 @@ function renderContents(){
 
  $('#contentCards').innerHTML=arr.map(x=>{
    let mediaHtml='';
-   if(x.type==='Roteiro'){
-     mediaHtml='<div class="script">R</div>';
-   }else if(x.media){
+   if(x.media){
      mediaHtml=x.type==='Vídeo'
        ?`<video data-media-ref="${esc(x.media)}" ${String(x.media).startsWith('idbmedia:')?'':'src="'+esc(x.media)+'"'} autoplay muted loop playsinline preload="metadata" style="object-position:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%;transform:scale(${+(x.mediaZoom||100)/100});transform-origin:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%"></video>`
        :`<img data-media-ref="${esc(x.media)}" ${String(x.media).startsWith('idbmedia:')?'':'src="'+esc(x.media)+'"'} alt="${esc(x.title)}" loading="lazy" style="object-position:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%;transform:scale(${+(x.mediaZoom||100)/100});transform-origin:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%">`;
+   }else if(x.type==='Roteiro'){
+     mediaHtml='<div class="script">R</div>';
    }else{
      mediaHtml=`<div class="media-fallback"><div class="fallback-icon">${x.type==='Vídeo'?'▶':'▧'}</div><strong>Sem mídia cadastrada</strong><small>Edite este conteúdo e adicione a mídia.</small></div>`;
    }
@@ -1682,7 +1682,7 @@ $('#contentCards').onclick=e=>{
  setFrameControls(x);
 
  resolveMediaSrc(x.media).then(src=>{
-   if((x.type==='Imagem'||x.type==='Vídeo'||x.type==='Roteiro') && src){
+   if((x.type==='Imagem'||x.type==='Vídeo'||x.type==='Roteiro'||x.type==='Banner') && src){
      // Guarda a URL resolvida apenas para a prévia do editor visual.
      // O salvamento continua preservando a referência original da mídia.
      contentMediaPreviewUrl=src;
