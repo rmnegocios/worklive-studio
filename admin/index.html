@@ -605,7 +605,7 @@ table td{vertical-align:middle!important}
 <div class="field"><label>E-mail</label><input id="email" type="email" required placeholder="admin@worklive.studio"></div>
 <div class="field"><label>Senha</label><input id="password" type="password" required placeholder="••••••••"></div>
 <label class="remember-admin"><input id="rememberAdmin" type="checkbox"> <span>Manter conectado neste dispositivo</span></label>
-<button class="primary" type="submit">Entrar no painel</button><div id="err" class="err"></div>
+<button class="primary" type="submit" id="adminLoginBtn">Entrar no painel</button><div id="err" class="err" style="min-height:22px;margin-top:10px;text-align:center"></div>
 </form>
 </section>
 
@@ -1821,16 +1821,84 @@ function saveAdminSession(remember){
 function hasAdminSession(){
  try{return sessionStorage.getItem('wl-admin')==='1'||localStorage.getItem('wl-admin')==='1'}catch(e){return false}
 }
-$('#loginForm').onsubmit=e=>{
- e.preventDefault();
- if($('#email').value.trim().toLowerCase()===ADMIN_EMAIL&&$('#password').value===ADMIN_PASSWORD){
-   saveAdminSession($('#rememberAdmin').checked);
-   $('#login').classList.add('hidden');
-   $('#app').classList.remove('hidden');
-   load();seed();renderCustomers();renderContents();renderHistory();updateEmailBackendBadge();
-   migrateLegacyMediaToIndexedDB().catch(err=>console.warn('Migração automática:',err));
- }else $('#err').textContent='E-mail ou senha inválidos.';
-};
+function performAdminLogin(e){
+ if(e) e.preventDefault();
+
+ const err=$('#err');
+ const emailEl=$('#email');
+ const passEl=$('#password');
+ const rememberEl=$('#rememberAdmin');
+
+ if(err){
+   err.textContent='Verificando acesso...';
+   err.style.color='#8abfff';
+ }
+
+ try{
+   const typedEmail=(emailEl?.value||'').trim().toLowerCase();
+   const typedPassword=passEl?.value||'';
+
+   if(!typedEmail){
+     if(err){err.textContent='Digite o e-mail do administrador.';err.style.color='#ff6b78';}
+     emailEl?.focus();
+     return false;
+   }
+   if(!typedPassword){
+     if(err){err.textContent='Digite a senha do administrador.';err.style.color='#ff6b78';}
+     passEl?.focus();
+     return false;
+   }
+
+   if(typedEmail!==String(ADMIN_EMAIL).trim().toLowerCase()){
+     if(err){err.textContent='E-mail do administrador incorreto.';err.style.color='#ff6b78';}
+     emailEl?.focus();
+     return false;
+   }
+
+   if(typedPassword!==String(ADMIN_PASSWORD)){
+     if(err){err.textContent='Senha do administrador incorreta.';err.style.color='#ff6b78';}
+     passEl?.focus();
+     return false;
+   }
+
+   saveAdminSession(!!rememberEl?.checked);
+
+   // Abre o painel imediatamente. Nenhuma rotina posterior pode impedir o login visual.
+   $('#login')?.classList.add('hidden');
+   $('#app')?.classList.remove('hidden');
+
+   try{load()}catch(x){console.error('load:',x)}
+   try{seed()}catch(x){console.error('seed:',x)}
+   try{renderCustomers()}catch(x){console.error('renderCustomers:',x)}
+   try{renderContents()}catch(x){console.error('renderContents:',x)}
+   try{renderHistory()}catch(x){console.error('renderHistory:',x)}
+   try{updateEmailBackendBadge()}catch(x){console.error('email badge:',x)}
+   try{migrateLegacyMediaToIndexedDB().catch(x=>console.warn('Migração automática:',x))}catch(x){console.warn(x)}
+
+   return false;
+ }catch(x){
+   console.error('Falha no login:',x);
+   if(err){
+     err.textContent='Erro interno ao entrar: '+(x?.message||String(x));
+     err.style.color='#ff6b78';
+   }
+   return false;
+ }
+}
+
+const adminLoginForm=$('#loginForm');
+if(adminLoginForm){
+ adminLoginForm.addEventListener('submit',performAdminLogin);
+ const adminLoginButton=adminLoginForm.querySelector('button[type="submit"]');
+ if(adminLoginButton){
+   adminLoginButton.addEventListener('click',function(ev){
+     // fallback explícito para navegadores/páginas em que o submit seja interceptado
+     if(!adminLoginForm.checkValidity()) return;
+     ev.preventDefault();
+     performAdminLogin(ev);
+   });
+ }
+}
 
 const exportFullBackupBtn=$('#exportFullBackupBtn');
 const importFullBackupBtn=$('#importFullBackupBtn');
