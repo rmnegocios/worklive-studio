@@ -1463,7 +1463,7 @@ function render(){
    const frameY=Number.isFinite(+x.mediaPosY)?Math.max(0,Math.min(100,+x.mediaPosY)):50;
    const frameZoom=Number.isFinite(+x.mediaZoom)?Math.max(100,Math.min(220,+x.mediaZoom)):100;
    const imgStyle=`object-position:${frameX}% ${frameY}%;transform:scale(${frameZoom/100});transform-origin:${frameX}% ${frameY}%;`;
-   const media=(!isScript&&x.media)?(`<${isVideo?'video':'img'} class="cover-media ${isVideo?'video':'image'}" data-media-ref="${esc(x.media)}" ${String(x.media).startsWith('idbmedia:')?'':'src="'+esc(x.media)+'"'} ${isVideo?'autoplay muted loop playsinline preload="metadata" poster="'+esc(x.poster||'')+'"':'alt="'+esc(x.title)+'" loading="lazy" style="'+imgStyle+'"'}></${isVideo?'video':'img'}>`):'';
+   const media=(!isScript&&x.media)?(`<${isVideo?'video':'img'} class="cover-media ${isVideo?'video':'image'}" data-media-ref="${esc(x.media)}" ${String(x.media).startsWith('idbmedia:')?'':'src="'+esc(x.media)+'"'} ${isVideo?'autoplay muted loop playsinline preload="metadata" poster="'+esc(x.poster||'')+'" style="'+imgStyle+'"':'alt="'+esc(x.title)+'" loading="lazy" style="'+imgStyle+'"'}></${isVideo?'video':'img'}>`):'';
    const scriptVisual=isScript?`<div class="script-card-visual"><span>ROTEIRO</span><div>✦</div><small>Conteúdo pronto para leitura e uso</small></div>`:'';
    const copyLabel=isScript?'Copiar roteiro':'Copiar prompt';
    const openLabel=isScript?'Ver roteiro →':'Ver prompt →';
