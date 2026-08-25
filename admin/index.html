@@ -605,7 +605,7 @@ table td{vertical-align:middle!important}
 <div class="field"><label>E-mail</label><input id="email" type="email" required placeholder="admin@worklive.studio"></div>
 <div class="field"><label>Senha</label><input id="password" type="password" required placeholder="••••••••"></div>
 <label class="remember-admin"><input id="rememberAdmin" type="checkbox"> <span>Manter conectado neste dispositivo</span></label>
-<button class="primary" type="submit" id="adminLoginBtn">Entrar no painel</button><div id="err" class="err" style="min-height:22px;margin-top:10px;text-align:center"></div>
+<button class="primary" type="submit">Entrar no painel</button><div id="err" class="err"></div>
 </form>
 </section>
 
@@ -696,14 +696,7 @@ table td{vertical-align:middle!important}
 
 
 </div>
-<div class="section-actions">
-<button class="primary" id="saveContentBtn">Salvar conteúdo</button>
-<button class="secondary" id="clearContentBtn">Limpar</button>
-<button class="secondary" id="exportContentBtn">Exportar backup</button>
-<button class="secondary" id="exportFullBackupBtn" type="button">Backup completo</button>
-<button class="secondary" id="importFullBackupBtn" type="button">Importar backup</button>
-<input id="importFullBackupFile" type="file" accept=".json,application/json" style="display:none">
-</div>
+<div class="section-actions"><button class="primary" id="saveContentBtn">Salvar conteúdo</button><button class="secondary" id="clearContentBtn">Limpar</button><button class="secondary" id="exportContentBtn">Exportar backup</button></div>
 <div class="note">Quando Admin e Cliente estiverem hospedados no mesmo domínio, o conteúdo salvo aqui alimentará a biblioteca do cliente pela mesma base. Nesta versão local, ambos usam a chave compartilhada <b>worklive-studio-items</b>.</div>
 </div></div>
 <div class="panel"><div class="panel-head"><h2>Conteúdos cadastrados</h2><span id="contentCount">0 itens</span></div><div class="panel-body"><div class="search" style="margin-bottom:12px"><input id="contentSearch" placeholder="Buscar conteúdo..."></div><div class="cards" id="contentCards"></div></div></div>
@@ -765,6 +758,26 @@ function load(){
  try{customers=JSON.parse(localStorage.getItem(CUSTOMER_KEY)||'[]')}catch(e){customers=[]}
  try{events=JSON.parse(localStorage.getItem(EVENT_KEY)||'[]')}catch(e){events=[]}
  try{const x=localStorage.getItem(CONTENT_KEY);contents=x?JSON.parse(x):JSON.parse(JSON.stringify(defaultItems))}catch(e){contents=JSON.parse(JSON.stringify(defaultItems))}
+
+/* WORKLIVE AUTO-REPAIR: restaura títulos/prompts originais sem apagar mídias recuperadas */
+(function repairRecoveredMetadata(){
+ try{
+  if(!Array.isArray(contents)||!Array.isArray(defaultItems)) return;
+  let changed=false;
+  contents=contents.map((item,i)=>{
+   const original=defaultItems[i];
+   if(!original) return item;
+   const recovered = item && (item.category==='Recuperado' || /^Conteúdo Recuperado/i.test(item.title||'') || /Conteúdo recuperado automaticamente/i.test(item.prompt||''));
+   if(!recovered) return item;
+   changed=true;
+   return {...original,...item,title:original.title,type:original.type,category:original.category,tool:original.tool,prompt:original.prompt,media:item.media||original.media,poster:item.poster||original.poster};
+  });
+  if(changed){
+   localStorage.setItem(CONTENT_KEY,JSON.stringify(contents));
+   console.log('✅ WORKLIVE: títulos e prompts originais restaurados; mídias recuperadas preservadas.');
+  }
+ }catch(e){console.error('WORKLIVE metadata repair',e)}
+})();
 }
 function saveCustomers(){localStorage.setItem(CUSTOMER_KEY,JSON.stringify(customers))}
 function saveEvents(){localStorage.setItem(EVENT_KEY,JSON.stringify(events))}
@@ -1704,111 +1717,6 @@ $('#contentCards').onclick=e=>{
  if(del){const x=contents.find(i=>i.id===+del.dataset.deleteContent);if(x&&confirm('Excluir "'+x.title+'"?')){contents=contents.filter(i=>i.id!==x.id);saveContents();logEvent('Conteúdo excluído: '+x.title,'content');renderContents()}}
 };
 
-
-async function blobToDataURL(blob){
-  return await new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>resolve(r.result);
-    r.onerror=()=>reject(r.error||new Error('Falha ao ler mídia'));
-    r.readAsDataURL(blob);
-  });
-}
-async function dataURLToBlob(dataUrl){
-  const res=await fetch(dataUrl);
-  if(!res.ok) throw new Error('Falha ao restaurar mídia');
-  return await res.blob();
-}
-
-async function exportFullBackup(){
-  try{
-    adminToast('Preparando backup completo...','info');
-
-    const media={};
-    for(const item of contents){
-      const ref=String(item&&item.media||'');
-      if(!ref.startsWith('idbmedia:')) continue;
-      const key=ref.slice(9);
-      if(media[key]) continue;
-      const blob=await getMediaBlob(key);
-      if(blob) media[key]=await blobToDataURL(blob);
-    }
-
-    const backup={
-      format:'worklive-studio-full-backup',
-      version:1,
-      exportedAt:new Date().toISOString(),
-      origin:location.origin,
-      customers,
-      events,
-      contents,
-      media
-    };
-
-    const blob=new Blob([JSON.stringify(backup)],{type:'application/json'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    const stamp=new Date().toISOString().replace(/[:.]/g,'-');
-    a.download='worklive-studio-backup-completo-'+stamp+'.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1500);
-    adminToast('Backup completo criado. Guarde esse arquivo.','success');
-  }catch(err){
-    console.error(err);
-    adminToast('Falha ao criar backup completo.','danger');
-    alert('Não foi possível criar o backup completo.\n\n'+(err&&err.message?err.message:String(err)));
-  }
-}
-
-async function importFullBackupFile(file){
-  try{
-    const text=await file.text();
-    const backup=JSON.parse(text);
-
-    if(!backup || backup.format!=='worklive-studio-full-backup'){
-      throw new Error('Este arquivo não é um backup completo do WorkLive Studio.');
-    }
-
-    if(!confirm('Importar este backup completo?\n\nIsso substituirá os cadastros, histórico e conteúdos deste domínio pelos dados do backup.')){
-      return;
-    }
-
-    adminToast('Restaurando backup completo...','info');
-
-    const restoredContents=Array.isArray(backup.contents)?backup.contents:[];
-    const restoredCustomers=Array.isArray(backup.customers)?backup.customers:[];
-    const restoredEvents=Array.isArray(backup.events)?backup.events:[];
-    const restoredMedia=backup.media&&typeof backup.media==='object'?backup.media:{};
-
-    // Restaura os blobs primeiro usando as mesmas chaves das referências idbmedia:
-    for(const [key,dataUrl] of Object.entries(restoredMedia)){
-      if(!dataUrl) continue;
-      const blob=await dataURLToBlob(dataUrl);
-      await putMediaBlob(key,blob);
-    }
-
-    customers=restoredCustomers;
-    events=restoredEvents;
-    contents=restoredContents;
-
-    localStorage.setItem(CUSTOMER_KEY,JSON.stringify(customers));
-    localStorage.setItem(EVENT_KEY,JSON.stringify(events));
-    localStorage.setItem(CONTENT_KEY,JSON.stringify(contents));
-
-    renderCustomers();
-    renderContents();
-    renderHistory();
-
-    adminToast('Backup restaurado com sucesso.','success');
-    alert('Backup completo restaurado com sucesso neste domínio.');
-  }catch(err){
-    console.error(err);
-    adminToast('Falha ao importar backup.','danger');
-    alert('Não foi possível importar o backup.\n\n'+(err&&err.message?err.message:String(err)));
-  }
-}
-
 function renderHistory(){$('#historyList').innerHTML=events.map(e=>`<div class="event"><strong>${esc(e.text)}</strong><small>${new Date(e.at).toLocaleString('pt-BR')} · ${esc(e.type)}</small></div>`).join('')||'<div class="event"><strong>Nenhuma ação registrada ainda.</strong></div>'}
 
 function saveAdminSession(remember){
@@ -1821,101 +1729,16 @@ function saveAdminSession(remember){
 function hasAdminSession(){
  try{return sessionStorage.getItem('wl-admin')==='1'||localStorage.getItem('wl-admin')==='1'}catch(e){return false}
 }
-function performAdminLogin(e){
- if(e) e.preventDefault();
-
- const err=$('#err');
- const emailEl=$('#email');
- const passEl=$('#password');
- const rememberEl=$('#rememberAdmin');
-
- if(err){
-   err.textContent='Verificando acesso...';
-   err.style.color='#8abfff';
- }
-
- try{
-   const typedEmail=(emailEl?.value||'').trim().toLowerCase();
-   const typedPassword=passEl?.value||'';
-
-   if(!typedEmail){
-     if(err){err.textContent='Digite o e-mail do administrador.';err.style.color='#ff6b78';}
-     emailEl?.focus();
-     return false;
-   }
-   if(!typedPassword){
-     if(err){err.textContent='Digite a senha do administrador.';err.style.color='#ff6b78';}
-     passEl?.focus();
-     return false;
-   }
-
-   if(typedEmail!==String(ADMIN_EMAIL).trim().toLowerCase()){
-     if(err){err.textContent='E-mail do administrador incorreto.';err.style.color='#ff6b78';}
-     emailEl?.focus();
-     return false;
-   }
-
-   if(typedPassword!==String(ADMIN_PASSWORD)){
-     if(err){err.textContent='Senha do administrador incorreta.';err.style.color='#ff6b78';}
-     passEl?.focus();
-     return false;
-   }
-
-   saveAdminSession(!!rememberEl?.checked);
-
-   // Abre o painel imediatamente. Nenhuma rotina posterior pode impedir o login visual.
-   $('#login')?.classList.add('hidden');
-   $('#app')?.classList.remove('hidden');
-
-   try{load()}catch(x){console.error('load:',x)}
-   try{seed()}catch(x){console.error('seed:',x)}
-   try{renderCustomers()}catch(x){console.error('renderCustomers:',x)}
-   try{renderContents()}catch(x){console.error('renderContents:',x)}
-   try{renderHistory()}catch(x){console.error('renderHistory:',x)}
-   try{updateEmailBackendBadge()}catch(x){console.error('email badge:',x)}
-   try{migrateLegacyMediaToIndexedDB().catch(x=>console.warn('Migração automática:',x))}catch(x){console.warn(x)}
-
-   return false;
- }catch(x){
-   console.error('Falha no login:',x);
-   if(err){
-     err.textContent='Erro interno ao entrar: '+(x?.message||String(x));
-     err.style.color='#ff6b78';
-   }
-   return false;
- }
-}
-
-const adminLoginForm=$('#loginForm');
-if(adminLoginForm){
- adminLoginForm.addEventListener('submit',performAdminLogin);
- const adminLoginButton=adminLoginForm.querySelector('button[type="submit"]');
- if(adminLoginButton){
-   adminLoginButton.addEventListener('click',function(ev){
-     // fallback explícito para navegadores/páginas em que o submit seja interceptado
-     if(!adminLoginForm.checkValidity()) return;
-     ev.preventDefault();
-     performAdminLogin(ev);
-   });
- }
-}
-
-const exportFullBackupBtn=$('#exportFullBackupBtn');
-const importFullBackupBtn=$('#importFullBackupBtn');
-const importFullBackupInput=$('#importFullBackupFile');
-
-if(exportFullBackupBtn){
-  exportFullBackupBtn.onclick=()=>exportFullBackup();
-}
-if(importFullBackupBtn && importFullBackupInput){
-  importFullBackupBtn.onclick=()=>importFullBackupInput.click();
-  importFullBackupInput.onchange=async e=>{
-    const f=e.target.files&&e.target.files[0];
-    if(f) await importFullBackupFile(f);
-    e.target.value='';
-  };
-}
-
+$('#loginForm').onsubmit=e=>{
+ e.preventDefault();
+ if($('#email').value.trim().toLowerCase()===ADMIN_EMAIL&&$('#password').value===ADMIN_PASSWORD){
+   saveAdminSession($('#rememberAdmin').checked);
+   $('#login').classList.add('hidden');
+   $('#app').classList.remove('hidden');
+   load();seed();renderCustomers();renderContents();renderHistory();updateEmailBackendBadge();
+   migrateLegacyMediaToIndexedDB().catch(err=>console.warn('Migração automática:',err));
+ }else $('#err').textContent='E-mail ou senha inválidos.';
+};
 $('#logoutBtn').onclick=()=>{sessionStorage.removeItem('wl-admin');localStorage.removeItem('wl-admin');location.reload()};
 $('#refreshBtn').onclick=()=>{load();renderCustomers();renderContents();renderHistory()};
 if(hasAdminSession()){
@@ -1939,14 +1762,4 @@ if(saveContentButton){
 }
 </script>
 <div id="adminToast" role="status" aria-live="polite"></div>
-
-<script id="worklive-login-safety-patch">
-window.addEventListener('error', function(ev){
-  console.error('WorkLive Admin JS error:', ev.error || ev.message);
-});
-window.addEventListener('unhandledrejection', function(ev){
-  console.error('WorkLive Admin promise error:', ev.reason);
-});
-</script>
-
 </body></html>
