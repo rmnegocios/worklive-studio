@@ -1265,6 +1265,32 @@ main{
 }
 </style>
 
+
+<style id="worklive-video-card-9x16">
+/* WORKLIVE STUDIO — cards de vídeo verticais 9:16 */
+.card:has(.cover-media.video){
+  aspect-ratio:auto !important;
+  height:auto !important;
+}
+.card:has(.cover-media.video) .cover{
+  aspect-ratio:9 / 16 !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+  background:#030912 !important;
+}
+.card:has(.cover-media.video) .cover-media.video{
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  object-position:center center !important;
+  transform:none !important;
+  transform-origin:center center !important;
+}
+</style>
+
 </head>
 <body>
 <section id="login" class="login-shell">
