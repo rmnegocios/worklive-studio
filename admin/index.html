@@ -763,11 +763,37 @@ function load(){
    Importante: associação por posição/índice foi removida porque ela ligava títulos/prompts
    de demonstração às mídias erradas. Dados existentes são preservados como estão; nenhum
    defaultItem é injetado automaticamente na biblioteca. */
-(function stopFalseMetadataAssociation(){
+(function repairFalseMetadataAssociationV31(){
  try{
    if(!Array.isArray(contents)) contents=[];
-   console.log('✅ WORKLIVE v30: associação automática por índice desativada. Cards-modelo não serão reinseridos.');
- }catch(e){console.error('WORKLIVE v30 metadata guard',e)}
+   const marker='worklive-v31-false-metadata-cleaned';
+   if(localStorage.getItem(marker)!=='1'){
+     const fakeByTitle=new Map((Array.isArray(defaultItems)?defaultItems:[]).map(x=>[String(x.title||'').trim(),x]));
+     let cleaned=0;
+     contents=contents.map((item,index)=>{
+       if(!item||typeof item!=='object') return item;
+       const ref=String(item.media||'');
+       const title=String(item.title||'').trim();
+       const prompt=String(item.prompt||'').trim();
+       const fake=fakeByTitle.get(title);
+       const looksRecovered = ref.startsWith('idbmedia:') && (
+         !!fake || /^(Conteúdo Recuperado|RECUPERADO_)/i.test(title) ||
+         /Conteúdo recuperado automaticamente do armazenamento local/i.test(prompt)
+       );
+       if(!looksRecovered) return item;
+       cleaned++;
+       return {...item,
+         title:'Conteúdo recuperado '+String(index+1).padStart(2,'0'),
+         category:'Recuperado',
+         prompt:'',
+         __metadataRecovered:false
+       };
+     });
+     localStorage.setItem(CONTENT_KEY,JSON.stringify(contents));
+     localStorage.setItem(marker,'1');
+     console.warn('🧹 WORKLIVE v31: metadados falsamente associados removidos de '+cleaned+' cards. As mídias foram preservadas.');
+   }
+ }catch(e){console.error('WORKLIVE v31 metadata repair',e)}
 })();
 }
 function saveCustomers(){localStorage.setItem(CUSTOMER_KEY,JSON.stringify(customers))}
