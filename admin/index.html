@@ -449,7 +449,7 @@ table td{vertical-align:middle!important}
   user-select:none;
 }
 .frame-direct-viewport.dragging{cursor:grabbing}
-.frame-direct-viewport img{
+.frame-direct-viewport img,.frame-direct-viewport video{
   position:absolute;
   left:50%;
   top:50%;
@@ -665,7 +665,7 @@ table td{vertical-align:middle!important}
 
   <div class="frame-direct-editor" id="frameDirectEditor">
     <div class="frame-direct-viewport" id="frameViewport">
-      <img id="frameDirectImage" alt="Prévia para enquadramento">
+      <img id="frameDirectImage" alt="Prévia para enquadramento"><video id="frameDirectVideo" muted loop playsinline preload="metadata"></video>
       <div class="frame-guide"></div>
       <div class="frame-hint" id="frameHint">Quadro 3:4 • Arraste para posicionar • +/− ou rodinha para zoom</div>
     </div>
@@ -1235,43 +1235,72 @@ function updateFrameLabels(){
 function updateFramePreview(){
   updateFrameLabels();
   const img=$('#frameDirectImage');
+  const video=$('#frameDirectVideo');
   const vp=$('#frameViewport');
-  if(!img||!vp||!img.naturalWidth||!img.naturalHeight)return;
+  const type=$('#contentType')?.value;
+  const media=type==='Vídeo'?video:img;
+  if(!media||!vp)return;
+
+  const mw=type==='Vídeo' ? media.videoWidth : media.naturalWidth;
+  const mh=type==='Vídeo' ? media.videoHeight : media.naturalHeight;
+  if(!mw||!mh)return;
 
   const f=currentFrameValues();
   const vw=vp.clientWidth||360;
   const vh=vp.clientHeight||480;
 
-  /* Em 100%, a imagem inteira cabe dentro do quadro 3:4. */
-  const fitScale=Math.min(vw/img.naturalWidth,vh/img.naturalHeight);
+  const fitScale=Math.min(vw/mw,vh/mh);
   const scale=fitScale*(f.mediaZoom/100);
 
-  /* 50/50 = centralizado. 0-100 move dentro do quadro. */
-  const fittedW=img.naturalWidth*scale;
-  const fittedH=img.naturalHeight*scale;
+  const fittedW=mw*scale;
+  const fittedH=mh*scale;
   const freeX=Math.max(vw,fittedW)*0.55;
   const freeY=Math.max(vh,fittedH)*0.55;
 
   const tx=((50-f.mediaPosX)/50)*freeX;
   const ty=((50-f.mediaPosY)/50)*freeY;
 
-  img.style.width=img.naturalWidth+'px';
-  img.style.height=img.naturalHeight+'px';
-  img.style.transform=`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(${scale})`;
-  img.style.transformOrigin='center center';
+  media.style.width=mw+'px';
+  media.style.height=mh+'px';
+  media.style.transform=`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(${scale})`;
+  media.style.transformOrigin='center center';
 }
 
-function setFrameImageSource(src){
+function setFrameMediaSource(src){
   const img=$('#frameDirectImage');
-  if(!img)return;
-  if(src){
+  const video=$('#frameDirectVideo');
+  const type=$('#contentType')?.value;
+  if(!img||!video)return;
+
+  img.style.display='none';
+  video.style.display='none';
+
+  if(!src){
+    img.removeAttribute('src');
+    video.removeAttribute('src');
+    try{video.load()}catch(_){}
+    return;
+  }
+
+  if(type==='Vídeo'){
+    img.removeAttribute('src');
+    video.onloadedmetadata=()=>updateFramePreview();
+    video.src=src;
+    video.style.display='block';
+    video.muted=true;
+    video.loop=true;
+    video.playsInline=true;
+    const p=video.play();
+    if(p&&p.catch)p.catch(()=>{});
+    if(video.readyState>=1)updateFramePreview();
+  }else{
+    video.pause();
+    video.removeAttribute('src');
+    try{video.load()}catch(_){}
     img.onload=()=>updateFramePreview();
     img.src=src;
     img.style.display='block';
     if(img.complete)updateFramePreview();
-  }else{
-    img.removeAttribute('src');
-    img.style.display='none';
   }
 }
 
@@ -1280,9 +1309,9 @@ function updateFrameControlsVisibility(){
   if(!box)return;
   const type=$('#contentType')?.value;
   const src=contentMediaPreviewUrl||contentMediaData||$('#contentUrl')?.value.trim()||'';
-  const show=type==='Imagem' && !!src;
+  const show=(type==='Imagem'||type==='Vídeo') && !!src;
   box.classList.toggle('hidden',!show);
-  if(show)setFrameImageSource(src);
+  if(show)setFrameMediaSource(src);
 }
 
 function frameZoomBy(delta){
@@ -1380,7 +1409,7 @@ function initDirectFrameEditor(){
   });
 }
 
-function clearContentForm(){if(contentMediaPreviewUrl&&contentMediaPreviewUrl.startsWith('blob:')){try{URL.revokeObjectURL(contentMediaPreviewUrl)}catch(_){}}contentMediaPreviewUrl='';contentMediaFile=null;$('#contentId').value='';$('#contentTitle').value='';$('#contentType').value='Imagem';$('#contentCategory').value='';$('#contentTool').value='IA';$('#contentPrompt').value='';$('#contentUrl').value='';$('#contentFile').value='';contentMediaData='';$('#contentPreview').innerHTML='Prévia da mídia';setFrameControls({mediaZoom:100,mediaPosX:50,mediaPosY:50});setFrameImageSource('');updateFrameControlsVisibility()}
+function clearContentForm(){if(contentMediaPreviewUrl&&contentMediaPreviewUrl.startsWith('blob:')){try{URL.revokeObjectURL(contentMediaPreviewUrl)}catch(_){}}contentMediaPreviewUrl='';contentMediaFile=null;$('#contentId').value='';$('#contentTitle').value='';$('#contentType').value='Imagem';$('#contentCategory').value='';$('#contentTool').value='IA';$('#contentPrompt').value='';$('#contentUrl').value='';$('#contentFile').value='';contentMediaData='';$('#contentPreview').innerHTML='Prévia da mídia';setFrameControls({mediaZoom:100,mediaPosX:50,mediaPosY:50});setFrameMediaSource('');updateFrameControlsVisibility()}
 function previewContent(src,type){
  const p=$('#contentPreview');
  if(p){
@@ -1393,7 +1422,7 @@ function previewContent(src,type){
    }
  }
  updateFrameControlsVisibility();
- if(type==='Imagem'&&src)setFrameImageSource(src);
+ if((type==='Imagem'||type==='Vídeo')&&src)setFrameMediaSource(src);
  const v=p&&p.querySelector('video');if(v){v.muted=true;v.play().catch(()=>{})}
 }
 $('#contentFile').onchange=async e=>{
@@ -1468,9 +1497,9 @@ async function saveContent(){
    tool:$('#contentTool').value.trim()||'IA',
    prompt,
    media,
-   mediaZoom:type==='Imagem'?frame.mediaZoom:100,
-   mediaPosX:type==='Imagem'?frame.mediaPosX:50,
-   mediaPosY:type==='Imagem'?frame.mediaPosY:50
+   mediaZoom:(type==='Imagem'||type==='Vídeo')?frame.mediaZoom:100,
+   mediaPosX:(type==='Imagem'||type==='Vídeo')?frame.mediaPosX:50,
+   mediaPosY:(type==='Imagem'||type==='Vídeo')?frame.mediaPosY:50
  };
 
  const backup=[...contents];
@@ -1547,7 +1576,7 @@ function renderContents(){
      mediaHtml='<div class="script">R</div>';
    }else if(x.media){
      mediaHtml=x.type==='Vídeo'
-       ?`<video data-media-ref="${esc(x.media)}" ${String(x.media).startsWith('idbmedia:')?'':'src="'+esc(x.media)+'"'} autoplay muted loop playsinline preload="metadata"></video>`
+       ?`<video data-media-ref="${esc(x.media)}" ${String(x.media).startsWith('idbmedia:')?'':'src="'+esc(x.media)+'"'} autoplay muted loop playsinline preload="metadata" style="object-position:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%;transform:scale(${+(x.mediaZoom||100)/100});transform-origin:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%"></video>`
        :`<img data-media-ref="${esc(x.media)}" ${String(x.media).startsWith('idbmedia:')?'':'src="'+esc(x.media)+'"'} alt="${esc(x.title)}" loading="lazy" style="object-position:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%;transform:scale(${+(x.mediaZoom||100)/100});transform-origin:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%">`;
    }else{
      mediaHtml=`<div class="media-fallback"><div class="fallback-icon">${x.type==='Vídeo'?'▶':'▧'}</div><strong>Sem mídia cadastrada</strong><small>Edite este conteúdo e adicione a mídia.</small></div>`;
@@ -1629,9 +1658,9 @@ $('#contentCards').onclick=e=>{
  setFrameControls(x);
 
  resolveMediaSrc(x.media).then(src=>{
-   if(x.type==='Imagem' && src){
-     // Guarda apenas a URL temporária para o editor visual.
-     // O salvamento continua preservando x.media original.
+   if((x.type==='Imagem'||x.type==='Vídeo') && src){
+     // Guarda a URL resolvida apenas para a prévia do editor visual.
+     // O salvamento continua preservando a referência original da mídia.
      contentMediaPreviewUrl=src;
    }
    previewContent(src,x.type);
