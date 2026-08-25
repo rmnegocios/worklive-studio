@@ -1352,7 +1352,32 @@ async function resolveMediaSrc(ref){
 }
 async function hydrateClientStoredMedia(){
  const nodes=[...document.querySelectorAll('#grid [data-media-ref^="idbmedia:"]')];
- for(const el of nodes){try{const src=await resolveMediaSrc(el.dataset.mediaRef);if(src){el.src=src;if(el.tagName==='VIDEO'){el.muted=true;el.play().catch(()=>{})}}}catch(e){console.warn(e)}}
+
+ for(const el of nodes){
+   try{
+     const src=await resolveMediaSrc(el.dataset.mediaRef);
+
+     if(src){
+       el.src=src;
+       el.style.display='';
+       const cover=el.closest('.cover');
+       if(cover) cover.classList.remove('media-missing');
+
+       if(el.tagName==='VIDEO'){
+         el.muted=true;
+         el.loop=true;
+         el.playsInline=true;
+         el.play().catch(()=>{});
+       }
+     }else{
+       // Só marca como ausente depois de confirmar que não existe blob no IndexedDB.
+       const cover=el.closest('.cover');
+       if(cover) cover.classList.add('media-missing');
+     }
+   }catch(e){
+     console.warn('Falha ao carregar mídia salva:',e);
+   }
+ }
 }
 
 let items=(()=>{try{const saved=localStorage.getItem('worklive-studio-items');return saved?JSON.parse(saved):JSON.parse(JSON.stringify(defaultItems))}catch(e){return JSON.parse(JSON.stringify(defaultItems))}})();
@@ -1438,7 +1463,7 @@ function render(){
    const frameY=Number.isFinite(+x.mediaPosY)?Math.max(0,Math.min(100,+x.mediaPosY)):50;
    const frameZoom=Number.isFinite(+x.mediaZoom)?Math.max(100,Math.min(220,+x.mediaZoom)):100;
    const imgStyle=`object-position:${frameX}% ${frameY}%;transform:scale(${frameZoom/100});transform-origin:${frameX}% ${frameY}%;`;
-   const media=(!isScript&&x.media)?(`<${isVideo?'video':'img'} class="cover-media ${isVideo?'video':'image'}" data-media-ref="${esc(x.media)}" src="${String(x.media).startsWith('idbmedia:')?'':esc(x.media)}" ${isVideo?'autoplay muted loop playsinline preload="metadata" poster="'+esc(x.poster||'')+'"':'alt="'+esc(x.title)+'" loading="lazy" style="'+imgStyle+'"'}></${isVideo?'video':'img'}>`):'';
+   const media=(!isScript&&x.media)?(`<${isVideo?'video':'img'} class="cover-media ${isVideo?'video':'image'}" data-media-ref="${esc(x.media)}" ${String(x.media).startsWith('idbmedia:')?'':'src="'+esc(x.media)+'"'} ${isVideo?'autoplay muted loop playsinline preload="metadata" poster="'+esc(x.poster||'')+'"':'alt="'+esc(x.title)+'" loading="lazy" style="'+imgStyle+'"'}></${isVideo?'video':'img'}>`):'';
    const scriptVisual=isScript?`<div class="script-card-visual"><span>ROTEIRO</span><div>✦</div><small>Conteúdo pronto para leitura e uso</small></div>`:'';
    const copyLabel=isScript?'Copiar roteiro':'Copiar prompt';
    const openLabel=isScript?'Ver roteiro →':'Ver prompt →';
@@ -1450,9 +1475,23 @@ function render(){
 
 function bindMediaFallback(){
  document.querySelectorAll('.cover-media').forEach(m=>{
-  const fail=()=>{m.style.display='none';const c=m.closest('.cover');if(c)c.classList.add('media-missing')};
+  const isIndexedMedia=String(m.dataset.mediaRef||'').startsWith('idbmedia:');
+
+  const fail=()=>{
+    // Mídias do IndexedDB começam sem src enquanto o blob é carregado.
+    // Não esconda antes do hydrateClientStoredMedia() terminar.
+    if(isIndexedMedia && !m.src) return;
+
+    m.style.display='none';
+    const c=m.closest('.cover');
+    if(c)c.classList.add('media-missing');
+  };
+
   m.addEventListener('error',fail,{once:true});
-  if(m.tagName==='IMG' && m.complete && m.naturalWidth===0) fail();
+
+  if(!isIndexedMedia && m.tagName==='IMG' && m.complete && m.naturalWidth===0){
+    fail();
+  }
  });
 }
 
