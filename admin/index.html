@@ -1834,14 +1834,14 @@ $('#loginForm').onsubmit=e=>{
 
 const exportFullBackupBtn=$('#exportFullBackupBtn');
 const importFullBackupBtn=$('#importFullBackupBtn');
-const importFullBackupFile=$('#importFullBackupFile');
+const importFullBackupInput=$('#importFullBackupFile');
 
 if(exportFullBackupBtn){
   exportFullBackupBtn.onclick=()=>exportFullBackup();
 }
-if(importFullBackupBtn && importFullBackupFile){
-  importFullBackupBtn.onclick=()=>importFullBackupFile.click();
-  importFullBackupFile.onchange=async e=>{
+if(importFullBackupBtn && importFullBackupInput){
+  importFullBackupBtn.onclick=()=>importFullBackupInput.click();
+  importFullBackupInput.onchange=async e=>{
     const f=e.target.files&&e.target.files[0];
     if(f) await importFullBackupFile(f);
     e.target.value='';
@@ -1871,4 +1871,14 @@ if(saveContentButton){
 }
 </script>
 <div id="adminToast" role="status" aria-live="polite"></div>
+
+<script id="worklive-login-safety-patch">
+window.addEventListener('error', function(ev){
+  console.error('WorkLive Admin JS error:', ev.error || ev.message);
+});
+window.addEventListener('unhandledrejection', function(ev){
+  console.error('WorkLive Admin promise error:', ev.reason);
+});
+</script>
+
 </body></html>
