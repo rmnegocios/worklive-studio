@@ -1493,11 +1493,39 @@ $('#exportContentBtn').onclick=()=>{const blob=new Blob([JSON.stringify(contents
 
 async function hydrateAdminStoredMedia(){
   const nodes=[...document.querySelectorAll('#contentCards [data-media-ref^="idbmedia:"]')];
+
   for(const el of nodes){
     try{
       const src=await resolveMediaSrc(el.dataset.mediaRef);
-      if(src){el.src=src;if(el.tagName==='VIDEO'){el.muted=true;el.play().catch(()=>{})}}
-    }catch(e){console.warn(e)}
+
+      if(src){
+        el.src=src;
+        el.style.display='';
+
+        const card=el.closest('.content-card');
+        if(card) card.classList.remove('broken-media');
+
+        if(el.tagName==='VIDEO'){
+          el.muted=true;
+          el.loop=true;
+          el.playsInline=true;
+          const p=el.play();
+          if(p&&p.catch)p.catch(()=>{});
+        }
+      }else{
+        const box=el.closest('.content-media');
+        const card=el.closest('.content-card');
+        if(card) card.classList.add('broken-media');
+
+        if(box){
+          box.innerHTML=el.tagName==='VIDEO'
+            ? '<div class="media-fallback"><div class="fallback-icon">▶</div><strong>Vídeo não disponível</strong><small>Edite este conteúdo e envie o vídeo novamente.</small></div>'
+            : '<div class="media-fallback"><div class="fallback-icon">▧</div><strong>Imagem não disponível</strong><small>Edite este conteúdo e envie uma nova imagem.</small></div>';
+        }
+      }
+    }catch(e){
+      console.warn('Falha ao carregar mídia salva no Admin:',e);
+    }
   }
 }
 
@@ -1512,8 +1540,8 @@ function renderContents(){
      mediaHtml='<div class="script">R</div>';
    }else if(x.media){
      mediaHtml=x.type==='Vídeo'
-       ?`<video data-media-ref="${esc(x.media)}" src="${String(x.media).startsWith('idbmedia:')?'':esc(x.media)}" autoplay muted loop playsinline preload="metadata"></video>`
-       :`<img data-media-ref="${esc(x.media)}" src="${String(x.media).startsWith('idbmedia:')?'':esc(x.media)}" alt="${esc(x.title)}" loading="lazy" style="object-position:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%;transform:scale(${+(x.mediaZoom||100)/100});transform-origin:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%">`;
+       ?`<video data-media-ref="${esc(x.media)}" ${String(x.media).startsWith('idbmedia:')?'':'src="'+esc(x.media)+'"'} autoplay muted loop playsinline preload="metadata"></video>`
+       :`<img data-media-ref="${esc(x.media)}" ${String(x.media).startsWith('idbmedia:')?'':'src="'+esc(x.media)+'"'} alt="${esc(x.title)}" loading="lazy" style="object-position:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%;transform:scale(${+(x.mediaZoom||100)/100});transform-origin:${+(x.mediaPosX??50)}% ${+(x.mediaPosY??50)}%">`;
    }else{
      mediaHtml=`<div class="media-fallback"><div class="fallback-icon">${x.type==='Vídeo'?'▶':'▧'}</div><strong>Sem mídia cadastrada</strong><small>Edite este conteúdo e adicione a mídia.</small></div>`;
    }
@@ -1533,7 +1561,12 @@ function renderContents(){
  hydrateAdminStoredMedia();
 
  $$('#contentCards img').forEach(img=>{
+   const isIndexedMedia=String(img.dataset.mediaRef||'').startsWith('idbmedia:');
+
    img.addEventListener('error',()=>{
+     // Mídia IndexedDB ainda não recebeu src enquanto o blob é carregado.
+     if(isIndexedMedia && !img.src) return;
+
      const box=img.closest('.content-media');
      const card=img.closest('.content-card');
      if(card)card.classList.add('broken-media');
@@ -1542,14 +1575,26 @@ function renderContents(){
  });
 
  $$('#contentCards video').forEach(v=>{
-   v.muted=true;v.loop=true;v.playsInline=true;
+   const isIndexedMedia=String(v.dataset.mediaRef||'').startsWith('idbmedia:');
+
+   v.muted=true;
+   v.loop=true;
+   v.playsInline=true;
+
    v.addEventListener('error',()=>{
+     // Não considere erro antes do IndexedDB terminar de fornecer o blob.
+     if(isIndexedMedia && !v.src) return;
+
      const box=v.closest('.content-media');
      const card=v.closest('.content-card');
      if(card)card.classList.add('broken-media');
      if(box)box.innerHTML='<div class="media-fallback"><div class="fallback-icon">▶</div><strong>Vídeo não disponível</strong><small>Edite este conteúdo e envie o vídeo novamente.</small></div>';
    },{once:true});
-   const p=v.play(); if(p&&p.catch)p.catch(()=>{});
+
+   if(!isIndexedMedia){
+     const p=v.play();
+     if(p&&p.catch)p.catch(()=>{});
+   }
  });
 }
 $('#contentSearch').oninput=renderContents;
