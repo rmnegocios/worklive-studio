@@ -579,6 +579,22 @@ table td{vertical-align:middle!important}
 }
 </style>
 
+
+<style id="worklive-admin-frame-9x16">
+.frame-direct-editor{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.frame-direct-viewport{
+  width:min(360px,100%) !important;
+  aspect-ratio:9 / 16 !important;
+  height:auto !important;
+  min-height:0 !important;
+}
+</style>
+
 </head>
 <body>
 <section id="login" class="login">
@@ -653,7 +669,7 @@ table td{vertical-align:middle!important}
   <div class="frame-control-title">
     <div>
       <strong>Ajustar enquadramento</strong>
-      <small>Este quadro é exatamente 3:4. Em 100% você vê a imagem inteira; depois dê zoom e arraste até deixar do jeito que quer.</small>
+      <small>Este quadro é exatamente 9:16. Em 100% você vê a mídia inteira; depois dê zoom e arraste até deixar do jeito que quer.</small>
     </div>
     <div class="frame-toolbar">
       <button type="button" class="frame-icon-btn" id="frameZoomOutBtn" title="Diminuir zoom">−</button>
@@ -667,7 +683,7 @@ table td{vertical-align:middle!important}
     <div class="frame-direct-viewport" id="frameViewport">
       <img id="frameDirectImage" alt="Prévia para enquadramento"><video id="frameDirectVideo" muted loop playsinline preload="metadata"></video>
       <div class="frame-guide"></div>
-      <div class="frame-hint" id="frameHint">Quadro 3:4 • Arraste para posicionar • +/− ou rodinha para zoom</div>
+      <div class="frame-hint" id="frameHint">Quadro 9:16 • Arraste para posicionar • +/− ou rodinha para zoom</div>
     </div>
   </div>
 
@@ -1309,7 +1325,7 @@ function updateFrameControlsVisibility(){
   if(!box)return;
   const type=$('#contentType')?.value;
   const src=contentMediaPreviewUrl||contentMediaData||$('#contentUrl')?.value.trim()||'';
-  const show=(type==='Imagem'||type==='Vídeo') && !!src;
+  const show=(type==='Imagem'||type==='Vídeo'||type==='Roteiro') && !!src;
   box.classList.toggle('hidden',!show);
   if(show)setFrameMediaSource(src);
 }
@@ -1414,15 +1430,18 @@ function previewContent(src,type){
  const p=$('#contentPreview');
  if(p){
    if(!src){
-     p.innerHTML=type==='Roteiro'?'<div style="font-size:30px;color:#56a4ff;font-weight:900">ROTEIRO</div>':'Prévia da mídia';
+     p.innerHTML=type==='Roteiro'
+       ?'<div style="font-size:30px;color:#56a4ff;font-weight:900">ROTEIRO</div>'
+       :'Prévia da mídia';
    }else if(type==='Vídeo'){
      p.innerHTML=`<video src="${esc(src)}" autoplay muted loop playsinline controls></video>`;
    }else{
-     p.innerHTML='';
+     // Imagem comum OU capa de Roteiro
+     p.innerHTML=`<img src="${esc(src)}" alt="Prévia da mídia" style="width:100%;height:100%;object-fit:contain;background:#07101a;border-radius:12px">`;
    }
  }
  updateFrameControlsVisibility();
- if((type==='Imagem'||type==='Vídeo')&&src)setFrameMediaSource(src);
+ if((type==='Imagem'||type==='Vídeo'||type==='Roteiro')&&src)setFrameMediaSource(src);
  const v=p&&p.querySelector('video');if(v){v.muted=true;v.play().catch(()=>{})}
 }
 $('#contentFile').onchange=async e=>{
@@ -1433,10 +1452,16 @@ $('#contentFile').onchange=async e=>{
   contentMediaData='';
   $('#contentUrl').value='';
 
-  if(f.type&&f.type.startsWith('video/')){
-    $('#contentType').value='Vídeo';
-  }else if(f.type&&f.type.startsWith('image/')){
-    $('#contentType').value='Imagem';
+  const selectedType=$('#contentType').value;
+
+  // Se estiver cadastrando um Roteiro, preserve o tipo Roteiro.
+  // A imagem escolhida será usada como capa/banner do roteiro.
+  if(selectedType!=='Roteiro'){
+    if(f.type&&f.type.startsWith('video/')){
+      $('#contentType').value='Vídeo';
+    }else if(f.type&&f.type.startsWith('image/')){
+      $('#contentType').value='Imagem';
+    }
   }
 
   const src=setTempPreviewUrl(f);
@@ -1471,23 +1496,22 @@ async function saveContent(){
  }
 
  let media='';
- if(type!=='Roteiro'){
-   const typedUrl=$('#contentUrl').value.trim();
-   if(contentMediaFile){
-     try{
-       const mediaKey='content-'+id+'-'+Date.now();
-       media=await putMediaBlob(mediaKey,contentMediaFile);
-     }catch(err){
-       console.error(err);
-       adminToast('Não foi possível armazenar a mídia no navegador.','danger');
-       alert('Não foi possível salvar esta mídia. Tente novamente ou use uma URL.');
-       return;
-     }
-   }else if(typedUrl){
-     media=typedUrl;
-   }else{
-     media=(old&&old.media)||'';
+ const typedUrl=$('#contentUrl').value.trim();
+
+ if(contentMediaFile){
+   try{
+     const mediaKey='content-'+id+'-'+Date.now();
+     media=await putMediaBlob(mediaKey,contentMediaFile);
+   }catch(err){
+     console.error(err);
+     adminToast('Não foi possível armazenar a mídia no navegador.','danger');
+     alert('Não foi possível salvar esta mídia. Tente novamente ou use uma URL.');
+     return;
    }
+ }else if(typedUrl){
+   media=typedUrl;
+ }else{
+   media=(old&&old.media)||'';
  }
 
  const frame=currentFrameValues();
@@ -1497,9 +1521,9 @@ async function saveContent(){
    tool:$('#contentTool').value.trim()||'IA',
    prompt,
    media,
-   mediaZoom:(type==='Imagem'||type==='Vídeo')?frame.mediaZoom:100,
-   mediaPosX:(type==='Imagem'||type==='Vídeo')?frame.mediaPosX:50,
-   mediaPosY:(type==='Imagem'||type==='Vídeo')?frame.mediaPosY:50
+   mediaZoom:(type==='Imagem'||type==='Vídeo'||type==='Roteiro')?frame.mediaZoom:100,
+   mediaPosX:(type==='Imagem'||type==='Vídeo'||type==='Roteiro')?frame.mediaPosX:50,
+   mediaPosY:(type==='Imagem'||type==='Vídeo'||type==='Roteiro')?frame.mediaPosY:50
  };
 
  const backup=[...contents];
@@ -1658,7 +1682,7 @@ $('#contentCards').onclick=e=>{
  setFrameControls(x);
 
  resolveMediaSrc(x.media).then(src=>{
-   if((x.type==='Imagem'||x.type==='Vídeo') && src){
+   if((x.type==='Imagem'||x.type==='Vídeo'||x.type==='Roteiro') && src){
      // Guarda a URL resolvida apenas para a prévia do editor visual.
      // O salvamento continua preservando a referência original da mídia.
      contentMediaPreviewUrl=src;
