@@ -1497,24 +1497,30 @@ async function hydrateClientStoredMedia(){
  }
 }
 
-let items=(()=>{try{const saved=localStorage.getItem('worklive-studio-items');return saved?JSON.parse(saved):JSON.parse(JSON.stringify(defaultItems))}catch(e){return JSON.parse(JSON.stringify(defaultItems))}})();
-
-/* WORKLIVE AUTO-REPAIR: restaura títulos/prompts originais sem apagar mídias recuperadas */
-(function repairRecoveredMetadataClient(){
+function loadSharedItems(){
  try{
-  if(!Array.isArray(items)||!Array.isArray(defaultItems)) return;
-  let changed=false;
-  items=items.map((item,i)=>{
-   const original=defaultItems[i];
-   if(!original) return item;
-   const recovered = item && (item.category==='Recuperado' || /^Conteúdo Recuperado/i.test(item.title||'') || /Conteúdo recuperado automaticamente/i.test(item.prompt||''));
-   if(!recovered) return item;
-   changed=true;
-   return {...original,...item,title:original.title,type:original.type,category:original.category,tool:original.tool,prompt:original.prompt,media:item.media||original.media,poster:item.poster||original.poster};
-  });
-  if(changed) localStorage.setItem('worklive-studio-items',JSON.stringify(items));
- }catch(e){console.error('WORKLIVE client metadata repair',e)}
-})();
+  const saved=localStorage.getItem('worklive-studio-items');
+  if(!saved) return [];
+  const parsed=JSON.parse(saved);
+  return Array.isArray(parsed)?parsed:[];
+ }catch(e){
+  console.error('Falha ao ler worklive-studio-items:',e);
+  return [];
+ }
+}
+
+// A biblioteca do cliente usa SOMENTE os conteúdos realmente cadastrados no Admin.
+// Nenhum card-modelo/default é injetado e nenhum título/prompt é associado por posição.
+let items=loadSharedItems();
+
+function reloadSharedItems(){
+ items=loadSharedItems();
+ render();
+}
+
+window.addEventListener('storage',e=>{
+ if(e.key==='worklive-studio-items') reloadSharedItems();
+});
 function saveItems(){try{localStorage.setItem('worklive-studio-items',JSON.stringify(items));return true}catch(e){showToast('Sem espaço para salvar. Use uma imagem menor.');return false}}
 let activeFilter='Vídeo';
 let favs=new Set(JSON.parse(localStorage.getItem('worklive-studio-favs')||'[]'));
@@ -1647,7 +1653,7 @@ $('#grid').addEventListener('click',e=>{
  const o=e.target.closest('[data-open]'); if(o){current=items.find(i=>i.id===+o.dataset.open);$('#modalMeta').textContent=current.type+' · '+current.category;$('#modalTitle').textContent=current.title;$('#modalPrompt').textContent=current.prompt;$('#modal').classList.remove('hidden')}
 });
 $('#closeModal').onclick=()=>$('#modal').classList.add('hidden'); $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#modal').classList.add('hidden')}); $('#modalCopy').onclick=()=>current&&copyText(current.prompt);
-$('#refreshBtn').onclick=()=>{render();showToast('Biblioteca atualizada')};
+$('#refreshBtn').onclick=()=>{reloadSharedItems();showToast('Biblioteca atualizada')};
 $('#logoutBtn').onclick=()=>logoutWorkLive();
 
 const isAdmin=false;
