@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>WorkLive Studio Admin</title>
-<!-- WorkLive Admin: metadata-safe + email-final 2026-08-26 -->
+<!-- WorkLive Admin: metadata-safe + email-final + supabase-library 2026-08-26 -->
 <style>
 :root{--bg:#050912;--panel:#0a1320;--panel2:#0d1929;--line:rgba(102,157,235,.16);--line2:rgba(102,157,235,.30);--text:#f4f8ff;--muted:#7f93ad;--blue:#2f87ff;--cyan:#22c7ff;--green:#5fd49a;--red:#ff6678;--amber:#ffbf57;--purple:#a878ff}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 12% -10%,rgba(47,135,255,.14),transparent 28%),linear-gradient(180deg,#050912,#04070d);color:var(--text);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -596,6 +596,7 @@ table td{vertical-align:middle!important}
 }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <section id="login" class="login">
@@ -731,6 +732,21 @@ const MANAGE_ACCESS_ENDPOINT='https://lalxflccimuxlnetxxsq.supabase.co/functions
 const MANAGE_ACCESS_READY=MANAGE_ACCESS_ENDPOINT.startsWith('https://');
 const CREATE_ACCESS_ENDPOINT='https://lalxflccimuxlnetxxsq.supabase.co/functions/v1/create-access-user';
 const CREATE_ACCESS_READY=CREATE_ACCESS_ENDPOINT.startsWith('https://');
+
+// ===== SUPABASE — CONTEÚDOS COMPARTILHADOS =====
+const SUPABASE_URL='https://lalxflccimuxlnetxxsq.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhbHhmbGNjaW11eGxuZXR4eHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MTIxNDQsImV4cCI6MjEwMzA4ODE0NH0.B2Zjth3gPWMyXeWi3bk3Vpl10t19sUdY_lPXPXz51vI';
+const WL_CONTENT_TABLE='worklive_studio_items';
+const WL_STORAGE_BUCKET='worklive-library';
+
+let sbAdmin=null;
+if(window.supabase){
+  sbAdmin=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+    auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+  });
+}else{
+  console.error('WorkLive Admin: SDK do Supabase não carregou.');
+}
 
 const CUSTOMER_KEY='worklive-admin-customers-v2', EVENT_KEY='worklive-admin-events-v2', CONTENT_KEY='worklive-studio-items';
 const defaultItems=[{"id":1,"media":"media/img_4.jpg","title":"Recriando cenário","type":"Imagem","category":"POV","tool":"IA","prompt":"Use Image 1 as the base scene for the environment.\nUse Image 2 ONLY as a reference for the garment.\nTASK:\nRemove the garment from Image 1 and replace it with the garment from Image 2.\nThe garment from Image 2 should appear naturally arranged on the bed, as if it had just been taken out of its packaging. IMPORTANT RULES:\n• Preserve the environment from Image 1 exactly\n• Preserve the environment exactly\n• Preserve the camera angle exactly\n• Preserve the lighting exactly\n• Preserve the composition exactly\n• Preserve the perspective exactly\nHAND CONSISTENCY (CRITICAL):\n• Keep the exact same hands from Image 1 • Keep the exact same skin tone • Keep the exact same manicure • Keep the exact same accessories (rings, bracelets, watches, if present) • Keep the exact same rings (if present) • Keep the exact same hand position • Keep the exact same arm position • DO NOT generate new hands • DO NOT modify the hands in any way\nCLOTHING REPLACEMENT:\n• Remove only the clothing from Image 1 • Replace it with the clothing from Image 2 • Replicate the clothing EXACTLY as shown in Image 2 • Same color • Same fabric • Same shape • Same proportions • No redesigning • No creative interpretation\nPOSITIONING:\n• The clothing must occupy approximately the same area where the original clothing was located\n• The garment must appear naturally arranged on the bed\n• Realistic fabric •\nNatural interaction with the bed surface\n• Natural gravity and drape\nSCENE MAINTENANCE (CRITICAL):\n• DO NOT alter the background • DO NOT alter the environment • DO NOT alter furniture (if present) • DO NOT alter environmental details • DO NOT alter the lighting • DO NOT create a new scene\nFINAL QUALITY:\n• Ultra-photorealistic • Natural shadows • Realistic fabric texture • Real 4K photograph appearance • No AI artifacts\nEXCLUSIONS:\n• No text • No logos • No watermarks • No filters • No stylization"},{"id":2,"media":"media/img_5.jpg","title":"Remover roupas/textos","type":"Imagem","category":"POV","tool":"IA","prompt":"Remove all clothing pieces, the model’s hands and arms, all text, captions, interface elements, search bar, play button, progress bar, timestamps and any other overlays from the image. Keep only the original environment: the white fluffy rug, the wicker basket, the green plant and the visible wooden floor. Preserve exactly the same top-down camera angle, framing, composition, lighting, colors, texture and image proportions. Naturally reconstruct the rug and background in the areas where the clothes, hands and text were removed, without visible marks, distortions or shadows from the deleted objects. Do not change, move, resize or add anything to the environment. The final image must look like the same scene photographed completely empty."},{"id":3,"media":"media/img_6.jpg","title":"Colocando a mão no ambiente","type":"Imagem","category":"POV","tool":"IA","prompt":"Use Image 1 as the BASE scene.\nTASK:\nAdd a pair of feminine hands into the scene, positioned naturally over the surface, matching the same top-down flat lay style and the same hand placement shown in the original composition.\nIMPORTANT RULES:\n• Preserve the environment from Image 1 exactly\n• Preserve the white fluffy rug exactly\n• Preserve the wicker basket exactly\n• Preserve the green leaf exactly\n• Preserve the visible wooden floor exactly\n• Preserve the camera angle exactly\n• Preserve the lighting exactly\n• Preserve the composition exactly\n• Preserve the perspective exactly\n• Do not modify the background in any way\nHAND DETAILS:\n• Add two feminine hands with fair/light skin tone\n• The hands must look elegant and natural\n• The nails must be painted bright red\n• Add subtle accessories, such as delicate bracelets\n• Add at least one ring\n• Add a small minimalist tattoo on one of the hands or wrist area\n• The tattoo should be subtle and aesthetic\n• The hands should look realistic and proportional\nHAND POSITION (CRITICAL):\n• The hands must appear in the same lower area of the image\n• One hand should be positioned on the lower left side\n• One hand should be positioned on the lower right side\n• Both hands should be slightly angled inward toward the center\n• Fingers should be naturally relaxed and slightly curved\n• The pose should feel like the person is about to arrange or present an item in the center\n• Keep the hand pose natural, balanced, and symmetrical\n• Show part of the forearms, entering from the bottom edges of the frame\nSCENE LOCK:\n• Do NOT add clothing\n• Do NOT add text\n• Do NOT add logos\n• Do NOT add watermarks\n• Do NOT add interface elements\n• Do NOT change the decor\n• Do NOT create a new environment\n• Do NOT stylize the image\nFINAL QUALITY:\n• Ultra photorealistic\n• Natural skin texture\n• Realistic red nails\n• Realistic jewelry details\n• Natural shadows\n• Natural integration with the scene\n• Looks like a real photograph\n• No AI artifacts"},{"id":4,"media":"media/img_7.jpg","title":"Colocar roupa no ambiente","type":"Imagem","category":"POV","tool":"IA","prompt":"Use Image 1 as the base scene for the environment.\nUse Image 2 ONLY as a reference for the clothing.\nTASK:\nRemove the clothing item from Image 1 and include the clothing item from Image 2.\nThe clothing from Image 2 must appear naturally arranged within the environment; maintain the size of real clothing.\nIMPORTANT RULES:\n• Preserve the environment from Image 1 exactly\n• Preserve the environment exactly\n• Preserve the camera angle exactly\n• Preserve the lighting exactly\n• Preserve the composition exactly\n• Preserve the perspective exactly\nHAND CONSISTENCY (CRITICAL):\n• Keep the exact same hands from Image 1 • Keep the exact same skin tone • Keep the exact same manicure • Keep the exact same accessories (rings, bracelets, watches, if present) • Keep the exact same rings (if present) • Keep the exact same hand position • Keep the exact same arm position • DO NOT generate new hands • DO NOT modify the hands in any way\nCLOTHING REPLACEMENT:\n• Remove only the clothing from Image 1 • Include the clothing from Image 2 • Replicate the clothing EXACTLY as shown in Image 2 • Same color • Same fabric • Same shape • Same proportions\nsame size • No redesigning • No creative interpretation\nPOSITIONING:\n• The clothing must occupy approximately the same area where the original clothing was located\n• The clothing item must appear naturally arranged within the environment\n• Realistic fabric •\nNatural interaction with the environment's surface. • Natural gravity and drape\nSCENE MAINTENANCE (CRITICAL):\n• Do NOT alter the background • Do NOT alter the environment • Do NOT alter furniture (if present) • Do NOT alter environmental details • Do NOT alter the lighting • Do NOT create a new scene\nFINAL QUALITY:\n• Ultra-photorealistic • Natural shadows • Realistic fabric texture • 4K real-photo look • No AI artifacts\nEXCLUSIONS:\n• No text • No logos • No watermarks • No filters • No stylization"},{"id":5,"media":"media/img_8.jpg","title":"Roupa no pacote","type":"Imagem","category":"POV","tool":"IA","prompt":"Use Image 1 as the BASE scene.\nUse Image 2 ONLY as the clothing reference.\nTASK:\nReplace the clothing item currently inside the transparent package with ALL clothing items shown in Image 2.\nIMPORTANT:\nPreserve the environment from Image 1 exactly.\nPreserve the bed exactly.\nPreserve the blanket exactly.\nPreserve the camera angle exactly.\nPreserve the lighting exactly.\nPreserve the composition exactly.\nPreserve the perspective exactly.\nPreserve the plastic package exactly.\nPreserve all hands exactly as they appear in Image 1.\nDo not create a new scene.\nDo not modify the room.\nDo not modify the packaging position.\nCLOTHING REPLACEMENT:\nRemove only the clothing item currently visible inside the package.\nPlace ALL clothing items from Image 2 inside the same package.\nReplicate the clothing exactly as shown in Image 2.\nSame color.\nSame fabric.\nSame design.\nSame print.\nSame proportions.\nNo redesign.\nNo creative interpretation.\nPACKING / FOLDING:\nIf Image 2 contains more than one clothing item, all pieces must be packed together inside the same transparent package, arranged neatly like a real online fashion order.\nFold the clothing naturally and professionally for e-commerce presentation.\nArrange the pieces so they fit realistically inside the package.\nIf any item contains a front print, graphic, logo, or important design element, fold and position it so the main front design remains clearly visible through the transparent packaging whenever possible.\nMaintain realistic fabric folds.\nMaintain realistic packaging reflections.\nAll garments must remain fully inside the package.\nFINAL QUALITY:\nUltra photorealistic.\nNatural shadows.\nRealistic transparent plastic.\nRealistic fabric texture.\nLooks like a real product photo.\nNo AI artifacts.\nEXCLUSIONS:\nNo text.\nNo logos added.\nNo watermark.\nNo filters.\nNo stylization."},{"id":6,"media":"media/img_9.jpg","title":"Colocar embalagem do TikTok","type":"Imagem","category":"POV","tool":"IA","prompt":"Coloque o primeiro seu ambiente e segundo o pacote\nCreate a realistic overhead product image using two references.\nImage A = the empty environment scene with only the model’s hands visible.\nImage B = the package reference.\nUse Image A as the main base for the scene. Preserve the exact same environment, background, surface, framing, lighting, camera angle, hand position style, skin tone, white nails, bracelets, and overall composition.\nAdd the package from Image B into the model’s hands, so the model is naturally holding the package in the scene.\nIMPORTANT:\n– The package must appear clearly visible in the hands\n– Show the FRONT side of the package\n– The shipping label must face the camera\n– The label should be readable and fully visible from the front\n– The package must look naturally held, centered, and well positioned\n– The hands must hold the package firmly and realistically from both sides, similar to a natural product presentation\n– The package must keep the same black plastic material, proportions, folds, and front label appearance as the reference\n– Do not change the package design\n– Do not redesign the label\n– Do not replace the package with another one\nThe final image should look like the model is presenting the package for a TikTok Shop product reveal, with the package clearly shown in front view.\nKeep the camera completely fixed in a top-down overhead angle.\nNo camera movement.\nNo extra objects.\nNo product outside the package.\nNo distorted hands.\nNo extra fingers.\nNo deformed package.\nNo label changes.\nNo background changes.\nFinal result:\nA clean, realistic overhead product image where the model is naturally holding the package with both hands, clearly showing the front side of the package and its label, using the empty environment as the main base.O pacote deve ser pequeno"},{"id":7,"title":"Gancho esticar a roupa","type":"Vídeo","category":"POV","tool":"FLOW","prompt":"Create a realistic overhead product video using the provided image as the main reference. Keep the camera completely fixed from a top-down view. Preserve the same carpet background, lighting, framing, hands, skin tone, white nails, bracelets, and the exact arrangement of the clothing pieces.\nThe video should focus only on the top/front piece — the first visible piece on top. The hands gently pick up only this piece and hold it from both sides, showing the fabric clearly. Then the hands softly stretch the fabric outward in a natural way, not too hard, just enough to show the material and elasticity. Hold for a brief moment, then relax slightly, and stretch the same piece again. Repeat this same action smoothly during the video: stretch, hold, relax a little, and stretch again.\nOnly this single clothing piece should move. The other pieces underneath or behind it must remain in the same position the whole time and should not be touched, removed, or rearranged.\nThe motion must be slow, controlled, and natural, as if someone is demonstrating the quality of the fabric. Keep the same hands visible throughout the video. No sudden movements.\nNo camera movement, no zoom, no cuts, no transitions, no changing clothes, no extra Ωproducts, no switching pieces, no distorted hands, no deformed fabric, and no movement in the other garments.\nIf needed, end with the piece still being held neatly in front of the other items, maintaining a clean product showcase look.","media":"media/vid_1.mp4","poster":"media/img_10.jpg"},{"id":8,"title":"Gancho tapar câmera e pegar produto","type":"Vídeo","category":"POV","tool":"FLOW","prompt":"Create a realistic overhead product showcase video using the provided image as the main reference. Keep the camera completely fixed in a top-down position, directly overhead. Preserve exactly the same bed or fabric surface, lighting, framing, hands, nails, and all clothing pieces as they appear in the image.\nThe clothes must remain lying on the bed throughout the entire video. The hands should not lift the clothing excessively. Instead, they should gently touch and handle the pieces while keeping them mostly resting on the bed.\nThe hands must interact with only one piece at a time and, throughout the entire video, may present only one or, at most, two products from the arrangement.\nFor the first product, the hands gently hold the garment and slightly open it to reveal its details. If the piece has straps, gently lift them to show them. If it has a neckline, gently open the area to show the neckline. If necessary, slightly spread the fabric to reveal the shape, stitching, cut, texture, or design. The movement should feel like a seller carefully presenting the product details while keeping the garment mostly in the same position on the bed.\nThe hands may also gently pull a small area of the fabric, smooth it with the fingers, slightly open the front area, and show the important details in a natural and elegant way. The piece must never be completely removed from the bed or lifted too high.\nAfter presenting the first piece, place it back exactly as it was. Then, if a second product is presented, repeat the same action: gently touch the piece, slightly open or spread it, show details such as straps, neckline, cut, or fabric texture, and keep the piece mostly resting on the bed.\nThe movement should be smooth, slow, elegant, and natural, like a detailed product presentation video. All other garments must remain completely still and untouched.\nFINAL CAMERA-COVER TRANSITION:\nOnly begin this action after the product presentation has been completely finished.\nOnly one hand begins a continuous movement toward the camera lens, as if reaching out to touch the viewer.\n* Gently rotate until the palm is facing the camera — a natural rotation of the arm/forearm, without forcibly bending or twisting the wrist.\n* The movement travels in a straight line along the lens axis, approaching the camera frontally, simulating a POV perspective of the camera being \"touched.\"\n* Maintain a constant, controlled speed: neither abrupt nor hesitant — a fluid movement from beginning to end.\n*Lens coverage:*\n* The palm progressively approaches until it fills 100% of the frame, with no gaps visible around the edges.\n* The final contact should create the sensation of completely physically blocking the camera lens, with a slight natural blur from proximity during the final frames before full coverage.\n*Final state (mandatory):*\n* The camera remains completely covered by the left palm until the cut.\n* There must be absolutely no movement away from the lens, no opening of the fingers, and no partial reveal of the scene after the lens is covered.\n* The final frame must show only the palm, filling 100% of the frame, with no part of the previous scene visible.\n*Suggested duration:* approximately 1 to 1.5 seconds, so the movement is clearly visible without feeling slow or dragged out.\nIMPORTANT:\n– Perform the entire normal product presentation first\n– Cover the camera only at the very end\n– Do not interrupt the product presentation prematurely\n– No sudden hand movements\n– No aggressive movements\n– Do not twist the wrist\n– Do not deform the fingers\n– Do not create extra fingers\n– Do not generate deformed hands\n– The palm must completely fill the camera view in the final frame\nDo not move the camera, do not apply zoom, do not use cuts, do not add transitions before the final camera-cover action, do not use fast movements, do not remove the clothes from the bed, do not shake the camera, do not deform the hands, do not deform the fabric, and do not handle multiple pieces at the same time.\nFINAL RESULT:\nA realistic continuous POV product showcase in which the hands naturally demonstrate the clothing exactly as described and, only at the very end, one hand smoothly approaches the lens and completely covers the camera with the palm, ending the video with the view fully covered to create a clean transition into the next scene.","media":"media/vid_2.mp4","poster":"media/poster_2.jpg"},{"id":10,"title":"Gancho jogar roupa — opção 2","type":"Vídeo","category":"POV","tool":"FLOW","prompt":"ESPECÍFICO (descreva a roupa)\nCrie um vídeo realista de produto com a câmera totalmente fixa em uma visão superior (top-down). Mantenha a câmera perfeitamente imóvel durante toda a cena. Preserve exatamente o mesmo fundo, iluminação, enquadramento e sombras naturais.\nAs mãos pegam delicadamente o SHORTS PRETO e a retiram completamente para fora do campo de visão da câmera, depois as mãos pegam delicadamente a BLUSA PRETA  e também a retiram completamente para fora do campo de visão.\nEm seguida as mãos pegam delicadamente o SHORTS MARROM e também a retiram completamente para fora do campo de visão e por último as mãos pegam delicadamente a BLUSA BRANCA e também a retiram completamente para fora do campo de visão.\nApós um breve momento, as mãos colocam as peças de roupa de volta exatamente em sua posição original, recriando exatamente a mesma disposição inicial das peças.\nTodos os movimentos devem ser lentos, suaves e extremamente naturais, como se uma pessoa estivesse organizando as roupas. Não altere o ângulo da câmera, o enquadramento, a iluminação ou o fundo. Não faça movimentos de câmera, zoom, cortes ou transições.\nPADRÃO\nCrie um vídeo realista de produto com a câmera totalmente fixa em uma visão superior (top-down). Mantenha a câmera perfeitamente imóvel durante toda a cena. Preserve exatamente o mesmo fundo, iluminação, enquadramento e sombras naturais.\nAs mãos pegam delicadamente cada peça de roupa e a retiram completamente para fora do campo de visão da câmera.\nApós um breve momento, as mãos colocam as peças de roupas exatamente em sua posição original. Em seguida, recriando exatamente a mesma disposição inicial das peças.\nTodos os movimentos devem ser lentos, suaves e extremamente naturais, como se uma pessoa estivesse organizando as roupas. Não altere o ângulo da câmera, o enquadramento, a iluminação ou o fundo. \nNão faça movimentos de câmera, zoom, cortes ou transições.","media":"media/vid_3.mp4","poster":"media/img_11.jpg"},{"id":11,"title":"Gancho pacote transparente","type":"Vídeo","category":"POV","tool":"FLOW","prompt":"Static camera. No camera movement. No zoom. No panning. No shaking.\nThe clothing item remains neatly folded inside the transparent package.\nThe woman’s hands firmly grip both sides of the package opening.\nWith a quick and realistic motion, she tears the plastic package open from the center.\nThe plastic stretches naturally and creates realistic tearing behavior.\nAt the exact moment the package is torn open, include a clear, crisp, and realistic plastic ripping sound.\nThe tearing sound must be perfectly synchronized with the movement of the hands and the plastic.\nThe sound should resemble a real transparent clothing package being firmly ripped open.\nInclude natural plastic stretching, crinkling, and tearing sounds during the opening motion.\nThe tearing sound should feel strong, satisfying, and impactful, creating an engaging viral unboxing effect.\nImmediately after tearing, both hands pull the torn plastic away from the garment.\nThe packaging is completely removed from the clothing.\nThe empty plastic is pulled out of the frame and does not remain covering the garment.\nInclude subtle and realistic plastic crinkling sounds as the empty packaging is removed from the frame.\nThe folded clothing remains centered on the surface.\nWithout pause, both hands grab the garment from both sides.\nThe garment is lifted smoothly as a single physical object.\nNo duplicate clothing.\nNo second garment.\nNo remaining copy on the surface.\nThe same garment is lifted upward toward the camera.\nThe front side of the garment faces the camera.\nThe hands slightly adjust the garment to showcase the front design, print, texture, and details.\nThe garment is presented close to the camera for a brief moment.\nInclude subtle, natural fabric movement sounds while the garment is lifted and adjusted.\nKeep the audio clean, realistic, and synchronized with every action.\nNo music.\nNo voice.\nNo talking.\nNo artificial sound effects.\nNo unnecessary background noise.\nFast but realistic product reveal.\nNatural fabric movement.\nNatural gravity.\nSmooth hand coordination.\nRealistic interaction between hands, packaging, and clothing.\nNo object morphing.\nNo clipping.\nNo hand deformation.\nNo finger distortion.\nNo extra fingers.\nNo camera movement.\nUltra-realistic TikTok Shop product reveal.\nTotal duration approximately 5 seconds.\nThe entire sequence should feel quick, satisfying, and natural, like a viral fashion unboxing reveal.","media":"media/vid_4.mp4","poster":"media/img_12.jpg"},{"id":12,"title":"Gancho embalagem TikTok Shop","type":"Vídeo","category":"POV","tool":"FLOW","prompt":"Ultra-realistic TikTok Shop fashion unboxing video.\nStatic overhead camera.\nNo camera movement.\nNo zoom.\nNo panning.\nNo shaking.\nNo cuts.\nNo transitions.\nUse the same overall sequence and behavior as the reference:\nA black shipping bag/package is already centered on the surface.\nThe woman’s hands appear naturally and hold the package from both sides near the top opening.\nThe package must remain the same package throughout the scene.\nDo not change the package design, color, label, or shape.\nKeep the same product continuity.\nDo not morph objects.\nDo not deform the hands.\nDo not deform the package.\nNo extra fingers.\nNo duplicate garments.\nUNBOXING SEQUENCE:\nThe woman firmly grips the top of the package with both hands.\nWith a quick, realistic, and satisfying motion, she tears open the TOP part of the package, just like a real shipping bag being opened from the top seam.\nThe plastic must stretch naturally and rip realistically.\nAt the exact moment the package is torn open, include a clear, crisp, synchronized plastic ripping sound.\nAudio requirements:\n– realistic plastic stretching sound\n– realistic crinkling sound\n– realistic tearing sound\n– tearing sound perfectly synchronized with the hands and package\n– subtle package handling sounds\n– subtle fabric movement sounds\n– no music\n– no voice\n– no talking\n– no artificial fake sound effects\n– clean audio only\nAfter tearing the top open, both hands pull the opening apart and reveal the clothing inside.\nIMPORTANT:\nThe package must remain visible in the scene.\nDo not remove the package from the scene.\nDo not throw the package away.\nDo not move it out of frame.\nKeep the opened package on the surface while the products are removed.\nPRODUCT REMOVAL LOGIC:\nIf there is only ONE clothing piece inside:\n– remove only that one piece\n– pull it out naturally with both hands\n– place it neatly on the surface beside or in front of the package\n– keep the package visible in the scene\nIf there are TWO clothing pieces inside:\n– remove ONLY ONE piece at a time\n– never pull both pieces out together\n– never remove everything at once\n– first, remove the first clothing piece naturally\n– place the first piece neatly on the surface\n– keep the package still visible in the scene\n– then reach back into the same package\n– remove the second clothing piece naturally\n– place the second piece neatly beside the first one\nThe removal must feel realistic and sequential:\nfirst piece out → placed on the surface → second piece out → placed on the surface.\nDo not skip steps.\nDo not instantly spawn the clothing outside the package.\nDo not make both pieces come out together.\nDo not mix the garments.\nDo not duplicate the garments.\nCLOTHING PRESENTATION:\nEach clothing piece must be handled as a single physical object with realistic fabric behavior and gravity.\nWhen each piece is removed:\n– lift it naturally from the package\n– briefly reveal it clearly\n– then place it neatly on the surface\n– gently adjust or smooth it if needed\nAfter placing the garment, the hands may lightly smooth the fabric to make the piece look clean and presentable.\nIf there are two pieces:\n– place them one after the other in an organized way\n– keep both visible on the surface at the end\n– keep the opened package still visible in the scene\nMOVEMENT STYLE:\nFast but realistic.\nSmooth hand coordination.\nNatural unboxing rhythm.\nVisually satisfying and viral-style product reveal.\nElegant and controlled movement.\nNo robotic motion.\nNo clipping.\nNo object morphing.\nNo unrealistic physics.\nFINAL RESULT:\nA hyper-realistic overhead unboxing video where the woman tears open the TOP of the black shipping package with a satisfying synchronized ripping sound, keeps the opened package visible in the scene, then removes the clothing naturally following the exact sequence: if there are two pieces, she removes one piece first, places it on the surface, then removes the second piece and places it beside the first — never taking both out at once. The final scene shows the garments neatly arranged on the surface with the package still visible.","media":"media/vid_5.mp4","poster":"media/poster_5.jpg"},{"id":13,"title":"Passar a mão na roupa","type":"Vídeo","category":"POV","tool":"FLOW","prompt":"Create a realistic overhead product showcase video using the provided image as the main reference. Keep the camera completely fixed in a top-down position. Preserve the same bed or fabric surface, lighting, framing, hands, nails, and all clothing pieces exactly as they appear.\nThe clothes must remain lying on the bed during the whole video. The hands should not lift the clothing too much. Instead, the hands gently touch and handle the pieces while they stay mostly resting on the bed.\nThe hands should interact with only one piece at a time, and during the whole video they may show one or at most two products from the arrangement.\nFor the first product, the hands gently hold the garment and open it slightly to reveal the details. If the piece has straps, lightly lift and show the straps. If it has a neckline, gently open and show the neckline. If needed, slightly spread the fabric to show the shape, stitching, cut, texture, or design. The motion should feel like a seller carefully presenting the product details while keeping the piece mostly in place on the bed.\nThe hands can also softly pull a small area of the fabric, smooth it with the fingers, lightly open the front area, and show the important details in a natural and elegant way. The piece should never be fully removed from the bed or lifted too high.\nAfter showing the first piece, place it back exactly as it was. Then, if a second product is shown, repeat the same action: gently touch it, slightly open or spread it, show details like straps, neckline, cut, or fabric texture, and keep the piece mostly resting on the bed.\nThe motion should be smooth, slow, elegant, and natural, like a product-detail presentation video. The other garments must remain still and untouched.\nNo camera movement, no zoom, no cuts, no transitions, no fast motion, no removing the clothing from the bed, no shaking, no distorted hands, no deformed fabric, and no handling multiple pieces at the same time.","media":"media/vid_6.mp4","poster":"media/img_13.jpg"},{"id":14,"title":"Mostrar as peças","type":"Vídeo","category":"POV","tool":"FLOW","prompt":"Create a realistic overhead product showcase video using the provided image as the main reference. Keep the camera completely fixed in a top-down position at all times. Preserve the same carpet background, lighting, framing, clothing arrangement, feminine hands, white nails, and bracelets.\nThe hands should interact with only one clothing piece at a time. Choose two pieces only from the arrangement. First, the hands gently pick up one piece from its place on the bed/carpet, lift it closer to the camera to show the details clearly, softly stretch or pull the fabric a little to demonstrate the material, hold it for a brief moment, and then place it back neatly in the exact same original position.\nAfter that, the hands move to a second clothing piece and repeat the same action: pick up only that one piece, bring it closer to the camera, show the details, gently stretch the fabric a little, hold briefly, and then place it back in the same exact place.\nThe movements should look elegant, smooth, controlled, and natural. The camera must remain still the whole time. The other clothing pieces that are not being handled must remain in place and should not move.\nNo camera movement, no zoom, no cuts, no transitions, no changing arrangement, no picking up two pieces at the same time, no extra products, no distorted hands, and no deformed fabric.","media":"media/vid_7.mp4","poster":"media/img_14.jpg"},{"id":15,"title":"Mostrar o tecido de perto","type":"Vídeo","category":"POV","tool":"FLOW","prompt":"Create a realistic 8-second overhead product video using the provided image as the main reference. Keep the camera completely fixed in a top-down position. Preserve the same carpet background, lighting, framing, feminine hands, white nails, bracelets, and the clothing arrangement.\nThe hands should pick up only one blouse from the arrangement in a natural way. After picking it up, gently stretch the blouse a little to show the fabric, then bring it closer to the camera without moving the camera itself. While holding the blouse near the camera, use the fingers to softly rub and slide over the fabric, showing the texture and quality of the material. The movement should look smooth, elegant, and natural, like a product showcase.\nAfter showing the fabric up close, keep the blouse well positioned in the hands, with the material clearly visible. The action should focus only on this single blouse.\nNo camera movement, no zoom, no cuts, no transitions, no extra products, no switching pieces, no distorted hands, and no deformed fabric.","media":"media/vid_8.mp4","poster":"media/img_15.jpg"},{"id":17,"media":"media/img_16.jpg","title":"COLOCAR ROUPA NA MAO DELA","type":"Imagem","category":"Mirror Selfie","tool":"IA","prompt":"Use Image 1 as the BASE avatar image.\nUse Image 2 ONLY as the clothing/product reference.\n\nTASK:\nThe avatar in Image 1 must HOLD the clothing/product from Image 2 naturally in front of the body exactly like a real person presenting a product for sale.\n\nIMPORTANT:\n• The clothing/product must remain fully visible in the hands\n• The avatar is NOT wearing the clothing\n• The avatar is holding the product naturally with both hands like a real showcase/reference pose\n• Preserve the exact product appearance from Image 2\n• Do NOT redesign, stylize, or modify the product in any way\n• Same fabric, shape, proportions, folds, colors, and details\n• No creative interpretation\n\nHAND & HOLDING REALISM (CRITICAL):\n• Hands must interact naturally with the product\n• Realistic grip pressure and finger placement\n• Natural fabric hanging behavior according to gravity\n• Realistic tension where the hands hold the clothing\n• No floating product\n• No clipping fingers\n• No distorted anatomy\n• Product must feel physically present in the scene\n\nPRODUCT POSITIONING:\n• Product centered naturally in front of the torso\n• Similar holding presentation style as the reference image\n• Arms positioned naturally and symmetrically\n• Maintain realistic shoulder and elbow positioning\n• Clothing should hang naturally downward\n\nAVATAR LOCK (CRITICAL):\n• Do NOT change face\n• Do NOT change body shape or proportions\n• Do NOT change skin tone\n• Do NOT change hair\n• Do NOT change pose structure except necessary arm adjustments for holding the product\n• Do NOT change facial expression\n• Do NOT change background\n• Do NOT beautify or enhance\n\nLIGHTING & SCENE MATCH:\n• Match original lighting perfectly\n• Match original shadows and reflections\n• Product lighting must integrate naturally into the scene\n• Preserve original environment realism\n\nFINAL QUALITY:\n• Ultra photorealistic\n• Looks like a real phone photo\n• Natural human anatomy\n• Natural hand interaction\n• No AI artifacts\n• No fake-looking fingers\n• No floating objects\n• High resolution\n• Clean realistic result\n\nEXCLUSIONS:\n• No text\n• No extra accessories\n• No logos added artificially\n• No watermarks\n• No filters\n• No cinematic effects\n• No stylization\n\nela nao deve esta com o celular na mao; ela deve esta olhando pra frente e sorrindo, segurando o produto"},{"id":18,"media":"media/img_17.jpg","title":"COLOCAR ROUPA NA MODELO","type":"Imagem","category":"Mirror Selfie","tool":"IA","prompt":"Use Image 1 as the BASE avatar image.\nUse Image 2 ONLY as the clothing reference.\n\nTASK:\nApply the clothing from Image 2 onto the avatar in Image 1.\n\nIMPORTANT RULES:\n• Do NOT describe the clothing\n• Do NOT invent, redesign, or stylize anything\n• Replicate the clothing EXACTLY as shown in Image 2\n• Same color, fabric, cut, shape, and proportions\n• No creative interpretation\n\nFIT & REALISM (VERY IMPORTANT):\n• Clothing must fit naturally on the avatar’s body\n• Respect real human anatomy\n• Natural fabric tension, folds, and stretch\n• No floating, clipping, or distortion\n• Clothing must look realistically worn, not pasted\n\nLOWER BODY FIT LOGIC (CRITICAL):\n• If the lower-body clothing appears fitted or body-hugging in Image 2:\n  – Apply a close, snug fit to the avatar\n  – Fabric follows the leg and hip contours naturally\n  – Minimal looseness\n  – Natural compression without exaggeration\n  – Size appears accurate and proportional to the body\n• If the lower-body clothing appears loose, relaxed, or soft-fabric in Image 2:\n  – Preserve the loose fit exactly\n  – Allow natural drape and spacing from the legs\n  – No tightening\n  – No reshapingHHT\n  – Fabric hangs naturally according to gravity\n• Fit behavior must always follow the visual characteristics of Image 2\n• Never force tightness or looseness against the reference\n\nAVATAR LOCK (CRITICAL):\n• Do NOT change face\n• Do NOT change body shape or proportions\n• Do NOT change skin tone\n• Do NOT change hair\n• Do NOT change pose or expression\n• Do NOT change background\n• Do NOT beautify, retouch, or enhance\n\nLIGHTING & SHADOW MATCH:\n• Match original lighting perfectly\n• Preserve light direction and softness\n• Natural shadows between clothing and skin\n\nFINAL QUALITY:\n• Ultra photorealistic\n• Looks like a real photo\n• No AI artifacts\n• High resolution\n• Clean, natural result\n\nEXCLUSIONS:\n• No text\n• No logos\n• No watermarks\n• No filters\n• No cinematic effects\n• No stylization"},{"id":19,"title":"GANCHO JOGAR ROUPA NA CAMERA","type":"Vídeo","category":"Mirror Selfie","tool":"IA","prompt":"Create a vertical ultra-realistic video animation using the provided image as the exact starting frame. The model is already holding the product with both hands in front of her body. She starts completely still, looking at the camera.\n\nShe makes only very small and gentle showcase movements with the product. The product must stay stable, centered, stretched naturally, and always clearly visible. Do not shake the product too much.\n\nThen she walks slowly straight forward toward the camera, without ever moving backward. The camera remains completely fixed.\n\nNear the end, she makes a brief pause, gives a soft pout expression only, and slightly turns her face. She does not blow a kiss.\n\nAfter that, she continues holding the product and brings it closer to the camera very gently, with minimal movement, until it naturally covers the lens.\n\nEXTREMELY CRITICAL PRODUCT LOCK:\nThe product must remain exactly the same item already visible in her hands in the starting image. Do not replace it, redesign it, reinterpret it, enhance it, or generate another version of it.\n\nDo not change:\n* fabric\n* texture\n* shape\n* neckline\n* straps\n* folds\n* trim\n* seams\n* proportions\n* visible front side\n* any visible detail\n\nDo not create new details when the product gets closer to the camera.\nDo not invent hidden parts.\nIf some part of the product is not fully visible in the starting frame, keep it undefined and do not generate new design information.\nThe product must only appear larger because of proximity, never different.\n\nCAMERA LOCK:\nNo camera movement.\nNo zoom.\nNo digital zoom.\nNo pan.\nNo tilt.\nNo reframe.\nNo handheld shake.\n\nMOTION RULE:\nThe model moves forward, but the product should stay as stable as possible in her hands.\nNo strong swinging.\nNo twisting.\nNo flipping.\nNo turning the product.\n\nUltra photorealistic, realistic human motion, realistic hands, realistic fabric behavior, no product morphing, no new details, no fake-looking changes.","media":"media/vid_9.mp4","poster":"media/img_18.jpg"},{"id":20,"title":"GANCHO TAPAR CAMERA COM A MAO","type":"Vídeo","category":"Mirror Selfie","tool":"IA","prompt":"{\n  \"animation_style\": \"mirror_selfie_hand_cover_transition\",\n  \"camera\": {\n    \"mirror_selfie_style\": true,\n    \"phone_in_hand\": true,\n    \"phone_hand\": \"right_hand\",\n    \"cover_hand\": \"left_hand\",\n    \"handheld_micro_movement\": true,\n    \"no_zoom\": true,\n    \"no_reframe\": true,\n    \"no_camera_swap\": true\n  },\n  \"motion_timing\": {\n    \"duration\": \"5_seconds\",\n    \"tempo\": \"natural_medium_fast\",\n    \"continuous_motion\": true,\n    \"no_cuts\": true\n  },\n  \"sequence\": [\n    {\n      \"action\": \"start_pose\",\n      \"pose\": \"front_facing_mirror_selfie\",\n      \"details\": \"standing at a comfortable distance from the mirror, holding the phone naturally in the right hand, relaxed feminine posture, soft natural stance, left arm relaxed\"\n    },\n    {\n      \"action\": \"step_forward\",\n      \"steps\": \"1_small_natural_step\",\n      \"speed\": \"smooth_natural\",\n      \"details\": \"takes one natural feminine step forward toward the mirror with subtle hip sway, relaxed shoulders, and realistic timing\"\n    },\n    {\n      \"action\": \"soft_expression\",\n      \"details\": \"maintains a calm feminine expression with a subtle soft smile and relaxed eyes\"\n    },\n    {\n      \"action\": \"left_hand_raise\",\n      \"details\": \"the left hand, which is not holding the phone, naturally lifts toward the camera lens while the right hand continues holding the phone in the same position\"\n    },\n    {\n      \"action\": \"cover_camera\",\n      \"details\": \"the left hand moves directly toward the lens and softly covers the entire camera view for a smooth mirror selfie transition effect\"\n    },\n    {\n      \"action\": \"cover_hold\",\n      \"duration\": \"very_brief\",\n      \"details\": \"holds the lens fully covered for a brief moment\"\n    },\n    {\n      \"action\": \"uncover_camera\",\n      \"details\": \"the left hand gently moves away from the lens in a smooth and natural motion while the right hand still holds the phone steadily\"\n    },\n    {\n      \"action\": \"step_backward\",\n      \"steps\": \"1_small_natural_step_back\",\n      \"speed\": \"smooth_natural\",\n      \"details\": \"after uncovering the lens, she naturally steps backward again to a comfortable mirror selfie distance\"\n    },\n    {\n      \"action\": \"final_pose\",\n      \"pose\": \"relaxed_mirror_selfie_pose\",\n      \"details\": \"returns to a relaxed feminine final pose, still holding the phone in the right hand, with soft posture, subtle body sway, and a natural soft smile\"\n    }\n  ],\n  \"body\": {\n    \"posture\": \"relaxed_confident\",\n    \"hips\": \"soft_natural_curve\",\n    \"shoulders\": \"relaxed\",\n    \"movement\": \"continuous_micro_motion\",\n    \"no_stiff_pose\": true\n  },\n  \"face\": {\n    \"expression\": \"soft_feminine\",\n    \"smile\": \"subtle_natural\",\n    \"eyes\": \"relaxed\"\n  },\n  \"hand_rules\": {\n    \"right_hand_must_always_hold_phone\": true,\n    \"left_hand_must_always_do_the_cover_transition\": true,\n    \"no_hand_swap\": true,\n    \"no_hand_substitution\": true,\n    \"no_extra_hands\": true,\n    \"no_missing_fingers\": true,\n    \"no_deformed_fingers\": true,\n    \"no_distorted_hands\": true,\n    \"no_bugged_hand_motion\": true,\n    \"no_phone_switching_hands\": true\n  },\n  \"rules\": {\n    \"no_360\": true,\n    \"no_spin\": true,\n    \"no_fast_turn\": true,\n    \"no_robotic_motion\": true,\n    \"no_exaggeration\": true,\n    \"no_random_pose_change\": true\n  },\n  \"realism\": {\n    \"preserve_identity\": true,\n    \"natural_hair_physics\": true,\n    \"natural_body_flow\": true,\n    \"natural_fabric_physics\": true,\n    \"natural_hand_motion\": true\n  },\n  \"final\": \"a realistic feminine mirror selfie video where the subject holds the phone in the right hand, steps slightly forward, uses the left hand to softly cover the camera lens, briefly holds the cover, uncovers the lens, then steps back into a relaxed natural mirror selfie pose without changing hands or creating any hand distortion\"\n}","media":"media/vid_10.mp4","poster":"media/img_19.jpg"},{"id":21,"title":"GANCHO ALÇA","type":"Vídeo","category":"Mirror Selfie","tool":"IA","prompt":"Animate the subject as a REAL person presenting the outfit in a natural POV-style fashion video.\n\nSTART OF ANIMATION:\nThe subject starts standing naturally at a comfortable distance from the camera.\nShe calmly takes two small natural steps forward toward the camera with relaxed posture and subtle body sway.\nWhile approaching closer, she softly looks toward the phone camera and forms a warm natural smile.\nThen she gently lifts one shoulder strap of the outfit outward slightly using her free hand, creating a soft realistic fabric stretch.\nShe briefly releases it naturally.\nRight after, she gently pulls the other shoulder strap outward the same way with a soft playful feminine smile.\nBoth strap pulls must feel delicate, subtle and realistic.\nNo exaggerated stretching.\nNo aggressive movement.\nNatural fabric behavior only.\n\nAfter the second strap adjustment:\nthe subject softly smiles again while still looking toward the phone camera.\nThen the subject naturally steps back again to a comfortable distance from the camera while maintaining relaxed body flow.\nAs she returns backward:\none hand gradually moves to the waist naturally.\nAt the final position:\nthe subject slightly shifts her hip,\nraises one leg softly forward with a feminine relaxed pose,\nkeeps one hand on the waist,\nand gives a warm natural smile.\n\nGENERAL MOTION:\nNatural fluid movement.\nContinuous body micro-adjustments.\nRelaxed shoulders.\nGentle hip sway.\nReal human timing.\nNo stiff motion.\n\nFACIAL EXPRESSION:\nSoft neutral expression most of the time.\nBrief natural smiles appear occasionally.\nNo frozen smile.\nNo exaggerated facial tension.\n\nBODY LANGUAGE:\nNatural posture.\nSubtle feminine energy.\nNo dancing.\nNo exaggerated influencer posing.\n\nCAMERA:\nPOV casual phone recording.\nVery subtle handheld micro-movement.\nNo zoom.\nNo camera shake.\nChest-height perspective.\n\nREALISM:\nPreserve original identity.\nNatural skin texture.\nNatural hair movement.\nNatural fabric physics.\nNo beauty filters.\nNo smoothing.\nNo stylization.\n\nRESTRICTIONS:\nNo talking.\nNo text.\nNo UI.\nNo effects.\nNo exaggerated movement.\nNo robotic motion.\n\nFINAL RESULT:\nA hyper-realistic casual fashion selfie video with natural forward movement, soft strap-adjustment gestures, warm smiling, realistic feminine body flow and natural relaxed posing.","media":"media/vid_11.mp4","poster":"media/img_20.jpg"},{"id":22,"title":"FRENTE+ LADO+ CABELO","type":"Vídeo","category":"Mirror Selfie","tool":"IA","prompt":"Animate the subject as a REAL person in a natural mirror selfie fashion video.\n\nThe subject starts standing naturally in front of the mirror at a comfortable distance.\nShe slowly walks toward the mirror with relaxed feminine posture, smooth body sway and realistic timing.\n\nAs she approaches:\nthe phone naturally lifts slightly upward and closer to the mirror, creating a realistic close-up framing focused more on the outfit and upper body.\n\nOnce closer to the mirror:\nthe subject softly grabs the front section of the hair resting over the chest area and naturally guides it backward behind the ear using the fingers.\n\nThe motion must feel soft and feminine:\nfingers lightly passing near the ear,\nhair smoothly sliding backward,\nnatural hair flow and realistic movement.\n\nWhile adjusting the hair:\nthe subject gives a subtle soft smile and relaxed eye contact with the phone screen.\n\nAfter fixing the hair:\nthe subject briefly interacts with the outfit naturally.\n\nPossible motions:\n- lightly touching the top fabric,\n- softly sliding fingers across the clothing,\n- subtle collar or neckline adjustment,\n- gentle fabric touch and release.\n\nThen:\nthe subject softly turns slightly sideways for a brief elegant pose while maintaining relaxed posture.\n\nAfter the showcase:\nshe slowly steps backward again with smooth natural body flow.\n\nAt the final position:\none hand softly moves to the waist,\nthe body settles naturally,\nand the subject finishes with a calm feminine pose.\n\nGENERAL MOTION:\nNatural fluid movement.\nRelaxed shoulders.\nSoft feminine posture.\nRealistic timing.\nNo stiff motion.\nNo robotic movement.\n\nCAMERA:\nMirror selfie style.\nSubtle handheld movement.\nNatural close-up framing.\nNo zoom.\nNo reframe.\n\nREALISM:\nPreserve original identity.\nNatural skin texture.\nNatural hair physics.\nNatural fabric behavior.\nNo beauty filters.\nNo smoothing.\nNo stylization.\n\nRESTRICTIONS:\nNo talking.\nNo text.\nNo UI.\nNo exaggerated movement.\nNo robotic timing.","media":"media/vid_12.mp4","poster":"media/img_21.jpg"},{"id":23,"title":"FRENTE+FOCO NA ROUPA","type":"Vídeo","category":"Mirror Selfie","tool":"IA","prompt":"Animate the subject as a REAL person presenting the outfit in a natural mirror selfie fashion video.\nThe total video duration should be 10 seconds.\n\nThe subject starts standing naturally in front of the mirror at a comfortable distance.\n\nIMPORTANT:\nShe must NOT take any step backward first.\nShe must begin from her initial position and move directly forward toward the mirror.\nNo backward motion before approaching.\nNo hesitation.\nNo reset movement.\n\nShe slowly and naturally walks directly forward toward the mirror with relaxed feminine posture, smooth body flow, soft hip sway, and realistic timing.\n\nAs she moves forward:\nthe phone remains in one hand and is naturally brought closer to the mirror, creating a stronger close-up focus on the outfit.\nThe phone should get noticeably closer to the product area, as if creating a natural in-camera zoom by physically moving closer.\nThe framing should shift attention away from the face and much more toward the outfit details and fabric.\n\nWhen she reaches the closer position, she pauses near the mirror and stays there for about 3 to 4 seconds to focus on the product.\n\nIMPORTANT CLOSE-UP PRODUCT FOCUS:\nDuring this close-up moment, the phone must remain close enough to clearly emphasize the outfit.\nThe product should be the main focus.\nThe outfit must appear closer and more prominent in frame.\n\nWhile close to the mirror:\nthe free hand softly slides over the fabric in a natural and elegant way.\nShe may gently pass the hand over the outfit from top to bottom, or softly glide the fingers over the material to highlight the texture and quality.\nShe may also turn slightly to the side while still staying close, just enough to better show the fit and fabric, while continuing to softly slide the hand over the outfit.\n\nAllowed motions during the close-up:\n- softly sliding one hand over the fabric\n- lightly rubbing or gliding the fingers over the material\n- gently moving the hand from top to bottom\n- subtle touch and release\n- slight side turn to better show the outfit\n- delicate fabric emphasis\n\nDo not use aggressive pulling.\nDo not move too fast.\nDo not make repetitive robotic motions.\n\nAfter the close-up showcase:\nthe subject naturally steps backward with relaxed feminine posture and soft body flow, returning to a comfortable mirror selfie distance.\n\nAt the final position:\none hand softly moves to the waist or rests naturally by the side,\nthe body settles into a calm elegant feminine pose,\nand the subject finishes with a soft natural expression.\n\nGENERAL MOTION:\nNatural fluid movement.\nRelaxed shoulders.\nSoft feminine posture.\nReal human timing.\nNo stiff motion.\nNo robotic movement.\nNo exaggerated posing.\n\nCAMERA:\nMirror selfie style.\nPhone held naturally in one hand.\nSubtle handheld movement only.\nNo digital zoom.\nThe closer product focus must happen by physically moving the phone and body closer to the mirror.\nNo reframe.\nNo camera glitches.\n\nREALISM:\nPreserve original identity.\nNatural skin texture.\nNatural hair movement.\nRealistic fabric behavior.\nNo beauty filters.\nNo smoothing.\nNo stylization.\n\nRESTRICTIONS:\nNo talking.\nNo text.\nNo UI.\nNo exaggerated movement.\nNo robotic timing.\nNo abrupt movements.\nNo backward step before moving forward.\n\nFINAL RESULT:\nA realistic 10-second mirror selfie fashion video where the subject starts from her original position, moves directly forward toward the mirror without stepping backward first, brings the phone noticeably closer to create a strong product focus, stays close for 3 to 4 seconds while softly sliding one hand over the outfit fabric and slightly turning to the side, then naturally steps back and ends in a calm elegant feminine pose.","media":"media/vid_13.mp4","poster":"media/img_22.jpg"},{"id":24,"title":"CTA SIMPATICA","type":"Vídeo","category":"Mirror Selfie","tool":"IA","prompt":"{\n  \"animation_style\": \"mirror_selfie_cta_motion\",\n  \"camera\": {\n    \"mirror_selfie_style\": true,\n    \"phone_in_hand\": true,\n    \"phone_hand\": \"right_hand\",\n    \"handheld_micro_movement\": true,\n    \"no_zoom\": true,\n    \"no_reframe\": true\n  },\n  \"motion_xtiming\": {\n    \"duration\": \"4_seconds\",\n    \"tempo\": \"natural_medium_fast\",\n    \"continuous_motion\": true\n  },\n  \"sequence\": [\n    {\n      \"action\": \"start_pose\",\n      \"pose\": \"front_facing\",\n      \"details\": \"standing slightly far from mirror, relaxed posture, soft feminine expression, eyes looking directly into the phone screen camera\"\n    },\n    {\n      \"action\": \"walk_forward\",\n      \"steps\": \"2_small_steps\",\n      \"speed\": \"smooth_natural\",\n      \"details\": \"walks naturally toward the mirror with subtle hip sway and relaxed shoulders, gaze remains fixed on the phone screen camera the entire time\"\n    },\n    {\n      \"action\": \"soft_face_expression\",\n      \"details\": \"forms a cute soft smile while still looking directly into the phone camera, relaxed eyes and natural cheek lift\"\n    },\n    {\n      \"action\": \"point_down_gesture\",\n      \"details\": \"raises free hand naturally and points downward toward bottom center of screen, relaxed wrist, friendly feminine motion, briefly holds gesture while maintaining eye contact with phone camera\"\n    },\n    {\n      \"action\": \"head_tilt\",\n      \"details\": \"slightly tilts head softly to the side while smiling naturally and still looking directly into the phone camera\"\n    }\n  ],\n  \"body\": {\n    \"posture\": \"relaxed_feminine\",\n    \"hips\": \"subtle_natural_sway\",\n    \"shoulders\": \"soft_relaxed\",\n    \"movement\": \"continuous_micro_motion\",\n    \"no_stiff_pose\": true\n  },\n  \"rules\": {\n    \"no_fast_movements\": true,\n    \"no_robotic_motion\": true,\n    \"no_exaggeration\": true,\n    \"no_dance\": true,\n    \"no_looking_at_mirror\": true\n  },\n  \"realism\": {\n    \"preserve_identity\": true,\n    \"natural_hair_physics\": true,\n    \"natural_body_flow\": true,\n    \"natural_fabric_physics\": true\n  },\n  \"final\": \"cute natural mirror selfie CTA with direct eye contact into the phone camera, soft smile, downward pointing gesture and gentle head tilt\"\n}","media":"media/vid_14.mp4","poster":"media/img_23.jpg"},{"id":25,"media":"media/img_24.jpg","title":"MIRROR SELFIE BÁSICO — COLOCAR ROUPA NA MODELO","type":"Imagem","category":"Mirror Selfie","tool":"IA","prompt":"Use Image 1 as the BASE avatar image.\nUse Image 2 ONLY as the clothing reference.\n\nTASK:\nApply the clothing from Image 2 onto the avatar in Image 1.\n\nIMPORTANT RULES:\n• Do NOT describe the clothing\n• Do NOT invent, redesign, or stylize anything\n• Replicate the clothing EXACTLY as shown in Image 2\n• Same color, fabric, cut, shape, and proportions\n• No creative interpretation\n\nFIT & REALISM (VERY IMPORTANT):\n• Clothing must fit naturally on the avatar’s body\n• Respect real human anatomy\n• Natural fabric tension, folds, and stretch\n• No floating, clipping, or distortion\n• Clothing must look realistically worn, not pasted\n\nLOWER BODY FIT LOGIC (CRITICAL):\n• If the lower-body clothing appears fitted or body-hugging in Image 2:\n  – Apply a close, snug fit to the avatar\n  – Fabric follows the leg and hip contours naturally\n  – Minimal looseness\n  – Natural compression without exaggeration\n  – Size appears accurate and proportional to the body\n• If the lower-body clothing appears loose, relaxed, or soft-fabric in Image 2:\n  – Preserve the loose fit exactly\n  – Allow natural drape and spacing from the legs\n  – No tightening\n  – No reshapingHHT\n  – Fabric hangs naturally according to gravity\n• Fit behavior must always follow the visual characteristics of Image 2\n• Never force tightness or looseness against the reference\n\nAVATAR LOCK (CRITICAL):\n• Do NOT change face\n• Do NOT change body shape or proportions\n• Do NOT change skin tone\n• Do NOT change hair\n• Do NOT change pose or expression\n• Do NOT change background\n• Do NOT beautify, retouch, or enhance\n\nLIGHTING & SHADOW MATCH:\n• Match original lighting perfectly\n• Preserve light direction and softness\n• Natural shadows between clothing and skin\n\nFINAL QUALITY:\n• Ultra photorealistic\n• Looks like a real photo\n• No AI artifacts\n• High resolution\n• Clean, natural result\n\nEXCLUSIONS:\n• No text\n• No logos\n• No watermarks\n• No filters\n• No cinematic effects\n• No stylization"},{"id":26,"title":"FRENTE + DETALHE REALISTA + CTA — 10 SEG","type":"Vídeo","category":"Mirror Selfie","tool":"IA","prompt":"Animate a REAL person presenting the outfit in a natural mirror selfie fashion video.\n\nShe starts at a comfortable distance from the mirror.\n\nFrom the beginning, the phone is slightly lifted and angled more toward the outfit details, not fully centered on the face.\n\nShe slowly walks toward the mirror with relaxed feminine posture, smooth body sway and realistic timing. Pacing must feel slower and intentional.\n\nAs she gets closer, the phone moves closer to the mirror, creating a close-up frame focused on outfit texture and upper-body details.\n\nNear the mirror, she softly turns slightly sideways to show the outfit silhouette naturally.\n\nShe stays close briefly instead of walking back immediately.\n\nWhile close, the free hand slowly slides across the fabric and interacts with the outfit.\n\nIf the outfit has zipper, buttons, collar, lapel, open fabric or adjustable details, the hand softly opens, adjusts or closes that area.\n\nPossible motions:\nlightly open/close fabric, touch zipper area, slide fingers across texture, subtle pull and release, showcase collar or sleeve.\n\nAt one moment, the phone moves very close to the mirror and slightly above the outfit angle, creating a product close-up focused on texture and material.\n\nInteraction must be delicate and realistic.\nNo exaggerated pulling.\nNo rushed motion.\nNo repetitive movement.\n\nFACIAL EXPRESSION:\nSoft feminine expression during the whole video.\nSubtle natural smiles while approaching, showcasing and stepping back.\nRelaxed eyes.\nNo serious or emotionless face.\n\nAfter showcasing, she slowly moves slightly backward with relaxed body flow and soft hip sway.\n\nAt the final moment:\nthe subject softly points downward with one finger while slightly tilting the head sideways in a friendly feminine way, maintaining a warm natural smile and relaxed posture.\n\nGENERAL:\nNatural fluid movement.\nRelaxed shoulders.\nSoft feminine posture.\nNo stiff or robotic motion.\n\nCAMERA:\nMirror selfie style.\nSubtle handheld movement.\nNatural close-up framing.\nNo zoom.\nNo reframe.\n\nREALISM:\nPreserve identity, skin texture, hair movement and fabric behavior.\nNo beauty filter.\nNo smoothing.\nNo stylization.\n\nRESTRICTIONS:\nNo talking.\nNo text.\nNo UI.\nNo exaggerated movement.\nNo robotic timing.","media":"media/vid_15.mp4","poster":"media/img_25.jpg"},{"id":27,"title":"LADO + CTA + FRENTE + CABELO","type":"Vídeo","category":"Mirror Selfie","tool":"IA","prompt":"{\n\"animation_style\": \"ultra_realistic_mirror_selfie_slow_motion_sequence\",\n\"camera\": {\n\"mirror_selfie_style\": true,\n\"phone_in_hand\": true,\n\"phone_hand\": \"right_hand\",\n\"handheld_micro_movement\": true,\n\"no_zoom\": true,\n\"no_reframe\": true,\n\"fixed_mirror_framing\": true\n},\n\"motion_timing\": {\n\"duration\": \"10_seconds\",\n\"tempo\": \"slow_natural\",\n\"continuous_motion\": true,\n\"no_cuts\": true\n},\n\"sequence\": [\n{\n\"action\": \"start_pose\",\n\"pose\": \"front_facing_mirror_selfie\",\n\"duration\": \"brief\",\n\"details\": \"ultra-realistic model standing naturally in front of the mirror, holding the phone in the right hand, relaxed feminine posture, calm expression, soft body stance, natural breathing and subtle micro-movements\"\n},\n{\n\"action\": \"slow_side_turn\",\n\"angle\": \"30_to_45_degrees\",\n\"speed\": \"smooth_natural\",\n\"details\": \"she slowly turns slightly to the side with relaxed shoulders, soft hip movement, and a natural feminine pose, without fully rotating the body\"\n},\n{\n\"action\": \"return_front\",\n\"speed\": \"smooth_natural\",\n\"details\": \"she gently turns back to a front-facing position toward the mirror, maintaining a soft, elegant expression\"\n},\n{\n\"action\": \"point_down\",\n\"hand\": \"left_hand\",\n\"speed\": \"natural\",\n\"details\": \"while continuing to hold the phone in the right hand, she naturally points downward with the left hand in a soft, subtle, feminine way, without exaggeration\"\n},\n{\n\"action\": \"step_closer_to_mirror\",\n\"steps\": \"1_small_natural_step\",\n\"speed\": \"slow_smooth\",\n\"details\": \"she takes a small step closer to the mirror, keeping a relaxed posture and natural body flow\"\n},\n{\n\"action\": \"hair_touch\",\n\"hand\": \"left_hand\",\n\"speed\": \"slow_elegant\",\n\"details\": \"the left hand softly moves up and gently passes through the hair, tucking the hair behind the ear in a natural and delicate way\"\n},\n{\n\"action\": \"final_pose\",\n\"duration\": \"brief\",\n\"details\": \"she holds a soft final mirror selfie pose close to the mirror, with relaxed shoulders, a subtle soft smile, calm eyes, and natural feminine presence\"\n}\n],\n\"body\": {\n\"posture\": \"relaxed_confident\",\n\"hips\": \"soft_natural_curve\",\n\"shoulders\": \"relaxed\",\n\"movement\": \"continuous_micro_motion\",\n\"no_stiff_pose\": true,\n\"no_robotic_body_language\": true\n},\n\"face\": {\n\"expression\": \"soft_feminine\",\n\"smile\": \"subtle_natural\",\n\"eyes\": \"relaxed\",\n\"no_frozen_expression\": true\n},\n\"hand_rules\": {\n\"right_hand_must_hold_phone_entire_time\": true,\n\"left_hand_used_for_gesture_and_hair_touch\": true,\n\"no_hand_swap\": true,\n\"no_extra_fingers\": true,\n\"no_missing_fingers\": true,\n\"no_deformed_hands\": true,\n\"no_bugged_hand_motion\": true\n},\n\"rules\": {\n\"no_360\": true,\n\"no_spin\": true,\n\"no_fast_turn\": true,\n\"no_exaggeration\": true,\n\"no_dancing\": true,\n\"no_random_pose_change\": true,\n\"no_camera_glitch\": true\n},\n\"realism\": {\n\"preserve_identity\": true,\n\"natural_hair_physics\": true,\n\"natural_body_flow\": true,\n\"natural_fabric_physics\": true,\n\"ultra_realistic_skin_texture\": true\n},\n\"final\": \"an ultra-realistic 10-second mirror selfie video where the model starts front-facing, slowly turns slightly to the side, returns to front-facing, points downward with the left hand, steps closer to the mirror, gently tucks her hair behind her ear, and ends in a soft natural feminine pose\"\n}","media":"media/vid_16.mp4","poster":"media/img_26.jpg"}];
@@ -1153,6 +1169,161 @@ async function getMediaBlob(ref){
 }
 
 
+// ===== SUPABASE — SINCRONIZAÇÃO DE CONTEÚDOS =====
+function itemToRemoteRow(item){
+ return {
+   id:String(item.id),
+   title:item.title||'',
+   type:item.type||'Imagem',
+   category:item.category||'',
+   tool:item.tool||'IA',
+   prompt:item.prompt||'',
+   media:item.media||'',
+   poster:item.poster||'',
+   frame:{
+     mediaZoom:Number.isFinite(+item.mediaZoom)?+item.mediaZoom:100,
+     mediaPosX:Number.isFinite(+item.mediaPosX)?+item.mediaPosX:50,
+     mediaPosY:Number.isFinite(+item.mediaPosY)?+item.mediaPosY:50
+   }
+ };
+}
+
+function remoteRowToItem(row){
+ const frame=(row&&row.frame&&typeof row.frame==='object')?row.frame:{};
+ const rawId=String(row?.id??'');
+ return {
+   id:/^\d+$/.test(rawId)?Number(rawId):rawId,
+   title:row?.title||'',
+   type:row?.type||'Imagem',
+   category:row?.category||'',
+   tool:row?.tool||'IA',
+   prompt:row?.prompt||'',
+   media:row?.media||'',
+   poster:row?.poster||'',
+   mediaZoom:Number.isFinite(+frame.mediaZoom)?+frame.mediaZoom:100,
+   mediaPosX:Number.isFinite(+frame.mediaPosX)?+frame.mediaPosX:50,
+   mediaPosY:Number.isFinite(+frame.mediaPosY)?+frame.mediaPosY:50
+ };
+}
+
+function fileExtFromMime(type){
+ const map={
+   'image/jpeg':'jpg','image/jpg':'jpg','image/png':'png','image/webp':'webp',
+   'image/gif':'gif','video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov'
+ };
+ return map[String(type||'').toLowerCase()]||'bin';
+}
+
+async function uploadBlobToSupabase(itemId,blob){
+ if(!sbAdmin) throw new Error('Supabase não conectado no Admin.');
+ const ext=fileExtFromMime(blob?.type);
+ const path=`library/${String(itemId).replace(/[^a-zA-Z0-9_-]/g,'_')}-${Date.now()}.${ext}`;
+
+ const {error}=await sbAdmin.storage
+   .from(WL_STORAGE_BUCKET)
+   .upload(path,blob,{
+     cacheControl:'3600',
+     upsert:false,
+     contentType:blob?.type||'application/octet-stream'
+   });
+
+ if(error) throw error;
+
+ const {data}=sbAdmin.storage.from(WL_STORAGE_BUCKET).getPublicUrl(path);
+ if(!data?.publicUrl) throw new Error('Não foi possível gerar URL pública da mídia.');
+ return data.publicUrl;
+}
+
+async function makeMediaRemote(item){
+ const ref=String(item?.media||'');
+ if(!ref) return '';
+
+ if(ref.startsWith('idbmedia:')){
+   const blob=await getMediaBlob(ref);
+   if(!blob) throw new Error('A mídia local não foi encontrada para "'+(item.title||item.id)+'".');
+   return await uploadBlobToSupabase(item.id,blob);
+ }
+
+ if(ref.startsWith('data:')){
+   const blob=await legacyDataUrlToBlob(ref);
+   return await uploadBlobToSupabase(item.id,blob);
+ }
+
+ return ref;
+}
+
+async function upsertRemoteItem(item){
+ if(!sbAdmin) throw new Error('Supabase não conectado no Admin.');
+ const {error}=await sbAdmin
+   .from(WL_CONTENT_TABLE)
+   .upsert(itemToRemoteRow(item),{onConflict:'id'});
+ if(error) throw error;
+}
+
+async function deleteRemoteItem(id){
+ if(!sbAdmin) return;
+ const {error}=await sbAdmin
+   .from(WL_CONTENT_TABLE)
+   .delete()
+   .eq('id',String(id));
+ if(error) throw error;
+}
+
+async function pullRemoteContents(){
+ if(!sbAdmin) return [];
+ const {data,error}=await sbAdmin
+   .from(WL_CONTENT_TABLE)
+   .select('*')
+   .order('created_at',{ascending:false});
+ if(error) throw error;
+ return (Array.isArray(data)?data:[]).map(remoteRowToItem);
+}
+
+let wlContentSyncPromise=null;
+async function syncContentsWithSupabase(){
+ if(wlContentSyncPromise) return wlContentSyncPromise;
+
+ wlContentSyncPromise=(async()=>{
+   if(!sbAdmin) throw new Error('Supabase não conectado.');
+
+   load();
+   await migrateLegacyMediaToIndexedDB();
+
+   const remote=await pullRemoteContents();
+
+   if(remote.length){
+     contents=remote;
+     saveContents();
+     renderContents();
+     return {mode:'pulled',count:contents.length};
+   }
+
+   if(contents.length){
+     const migrated=[];
+
+     for(const original of contents){
+       const item={...original};
+       item.media=await makeMediaRemote(item);
+       await upsertRemoteItem(item);
+       migrated.push(item);
+     }
+
+     contents=migrated;
+     saveContents();
+     renderContents();
+     return {mode:'migrated',count:contents.length};
+   }
+
+   contents=[];
+   saveContents();
+   renderContents();
+   return {mode:'empty',count:0};
+ })().finally(()=>{wlContentSyncPromise=null});
+
+ return wlContentSyncPromise;
+}
+
+
 // ===== MÍDIAS =====
 async function resolveMediaSrc(ref){
   if(!ref) return '';
@@ -1553,12 +1724,11 @@ async function saveContent(){
 
  if(contentMediaFile){
    try{
-     const mediaKey='content-'+id+'-'+Date.now();
-     media=await putMediaBlob(mediaKey,contentMediaFile);
+     if(!sbAdmin) throw new Error('Admin não autenticado no Supabase.');
+     media=await uploadBlobToSupabase(id,contentMediaFile);
    }catch(err){
      console.error(err);
-     adminToast('Não foi possível armazenar a mídia no navegador.','danger');
-     alert('Não foi possível salvar esta mídia. Tente novamente ou use uma URL.');
+     adminToast('Não foi possível enviar a mídia para a nuvem.','danger');
      return;
    }
  }else if(typedUrl){
@@ -1589,10 +1759,16 @@ async function saveContent(){
 
  if(!ok){
    contents=backup;
-   if(media&&String(media).startsWith('idbmedia:')&&(!old||media!==old.media)) await deleteMediaBlob(media);
    return;
  }
- if(old&&old.media&&old.media!==media&&String(old.media).startsWith('idbmedia:')) deleteMediaBlob(old.media);
+
+ try{
+   await upsertRemoteItem(obj);
+ }catch(err){
+   console.error('Falha ao sincronizar conteúdo:',err);
+   adminToast('Conteúdo salvo localmente, mas a sincronização falhou. Clique em Atualizar para tentar novamente.','warning');
+   return;
+ }
 
  logEvent((idx>=0?'Conteúdo atualizado: ':'Conteúdo cadastrado: ')+title,'content');
  renderContents();
@@ -1714,7 +1890,7 @@ $('#contentSearch').oninput=renderContents;
 $('#contentCards').onclick=e=>{
  const ed=e.target.closest('[data-edit-content]'),del=e.target.closest('[data-delete-content]');
  if(ed){
- const x=contents.find(i=>i.id===+ed.dataset.editContent);
+ const x=contents.find(i=>String(i.id)===String(ed.dataset.editContent));
  if(!x)return;
 
  if(contentMediaPreviewUrl&&contentMediaPreviewUrl.startsWith('blob:')){
@@ -1747,7 +1923,20 @@ $('#contentCards').onclick=e=>{
  window.scrollTo({top:0,behavior:'smooth'});
  return
 }
- if(del){const x=contents.find(i=>i.id===+del.dataset.deleteContent);if(x&&confirm('Excluir "'+x.title+'"?')){contents=contents.filter(i=>i.id!==x.id);saveContents();logEvent('Conteúdo excluído: '+x.title,'content');renderContents()}}
+ if(del){
+   const rawId=del.dataset.deleteContent;
+   const x=contents.find(i=>String(i.id)===String(rawId));
+   if(x&&confirm('Excluir "'+x.title+'"?')){
+     contents=contents.filter(i=>String(i.id)!==String(x.id));
+     saveContents();
+     deleteRemoteItem(x.id).catch(err=>{
+       console.error(err);
+       adminToast('Excluído localmente, mas houve falha ao sincronizar a exclusão.','warning');
+     });
+     logEvent('Conteúdo excluído: '+x.title,'content');
+     renderContents();
+   }
+ }
 };
 
 function renderHistory(){$('#historyList').innerHTML=events.map(e=>`<div class="event"><strong>${esc(e.text)}</strong><small>${new Date(e.at).toLocaleString('pt-BR')} · ${esc(e.type)}</small></div>`).join('')||'<div class="event"><strong>Nenhuma ação registrada ainda.</strong></div>'}
@@ -1759,27 +1948,102 @@ function saveAdminSession(remember){
    (remember?localStorage:sessionStorage).setItem('wl-admin','1');
  }catch(e){}
 }
+
 function hasAdminSession(){
  try{return sessionStorage.getItem('wl-admin')==='1'||localStorage.getItem('wl-admin')==='1'}catch(e){return false}
 }
-$('#loginForm').onsubmit=e=>{
- e.preventDefault();
- if($('#email').value.trim().toLowerCase()===ADMIN_EMAIL&&$('#password').value===ADMIN_PASSWORD){
-   saveAdminSession($('#rememberAdmin').checked);
-   $('#login').classList.add('hidden');
-   $('#app').classList.remove('hidden');
-   load();seed();renderCustomers();renderContents();renderHistory();updateEmailBackendBadge();
-   migrateLegacyMediaToIndexedDB().catch(err=>console.warn('Migração automática:',err));
- }else $('#err').textContent='E-mail ou senha inválidos.';
-};
-$('#logoutBtn').onclick=()=>{sessionStorage.removeItem('wl-admin');localStorage.removeItem('wl-admin');location.reload()};
-$('#refreshBtn').onclick=()=>{load();renderCustomers();renderContents();renderHistory()};
-if(hasAdminSession()){
-  $('#login').classList.add('hidden');
-  $('#app').classList.remove('hidden');
-  load();seed();renderCustomers();renderContents();renderHistory();updateEmailBackendBadge();
-   migrateLegacyMediaToIndexedDB().catch(err=>console.warn('Migração automática:',err));
+
+async function openAdminApp(){
+ $('#login').classList.add('hidden');
+ $('#app').classList.remove('hidden');
+
+ load();
+ seed();
+ renderCustomers();
+ renderContents();
+ renderHistory();
+ updateEmailBackendBadge();
+
+ try{
+   const result=await syncContentsWithSupabase();
+   adminToast(
+     result.mode==='migrated'
+       ?`${result.count} conteúdos migrados para a nuvem com sucesso.`
+       :`${result.count} conteúdos sincronizados.`,
+     'success'
+   );
+ }catch(err){
+   console.error(err);
+   adminToast('O Admin abriu, mas a sincronização da biblioteca falhou: '+err.message,'danger');
+ }
 }
+
+$('#loginForm').onsubmit=async e=>{
+ e.preventDefault();
+ $('#err').textContent='';
+
+ const email=$('#email').value.trim().toLowerCase();
+ const password=$('#password').value;
+
+ if(!sbAdmin){
+   $('#err').textContent='Supabase não carregou. Atualize a página.';
+   return;
+ }
+
+ const btn=e.currentTarget.querySelector('button[type="submit"]');
+ const original=btn?.textContent;
+ if(btn){btn.disabled=true;btn.textContent='Entrando...';}
+
+ try{
+   const {data,error}=await sbAdmin.auth.signInWithPassword({email,password});
+   if(error) throw error;
+   if(!data?.user) throw new Error('Login não confirmado.');
+
+   saveAdminSession($('#rememberAdmin').checked);
+   await openAdminApp();
+ }catch(err){
+   console.error(err);
+   $('#err').textContent='E-mail ou senha inválidos.';
+ }finally{
+   if(btn){btn.disabled=false;btn.textContent=original||'Entrar no painel';}
+ }
+};
+
+$('#logoutBtn').onclick=async()=>{
+ try{if(sbAdmin)await sbAdmin.auth.signOut()}catch(e){}
+ sessionStorage.removeItem('wl-admin');
+ localStorage.removeItem('wl-admin');
+ location.reload();
+};
+
+$('#refreshBtn').onclick=async()=>{
+ load();
+ renderCustomers();
+ renderHistory();
+ try{
+   const result=await syncContentsWithSupabase();
+   adminToast(`${result.count} conteúdos sincronizados.`,'success');
+ }catch(err){
+   console.error(err);
+   renderContents();
+   adminToast('Falha ao sincronizar: '+err.message,'danger');
+ }
+};
+
+(async function restoreAdminSession(){
+ if(!hasAdminSession()||!sbAdmin)return;
+ try{
+   const {data}=await sbAdmin.auth.getSession();
+   if(data?.session){
+     await openAdminApp();
+   }else{
+     sessionStorage.removeItem('wl-admin');
+     localStorage.removeItem('wl-admin');
+   }
+ }catch(err){
+   console.warn('Falha ao restaurar sessão do Admin:',err);
+ }
+})();
 
 const saveContentButton=$('#saveContentBtn');
 if(saveContentButton){
