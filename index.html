@@ -1497,6 +1497,8 @@ async function hydrateClientStoredMedia(){
  }
 }
 
+const WL_CONTENT_TABLE='worklive_studio_items';
+
 function loadSharedItems(){
  try{
   const saved=localStorage.getItem('worklive-studio-items');
@@ -1509,17 +1511,64 @@ function loadSharedItems(){
  }
 }
 
-// A biblioteca do cliente usa SOMENTE os conteúdos realmente cadastrados no Admin.
-// Nenhum card-modelo/default é injetado e nenhum título/prompt é associado por posição.
+function rowToLibraryItem(row){
+ const frame=(row&&row.frame&&typeof row.frame==='object')?row.frame:{};
+ const rawId=String(row?.id??'');
+ return {
+   id:/^\d+$/.test(rawId)?Number(rawId):rawId,
+   title:row?.title||'',
+   type:row?.type||'Imagem',
+   category:row?.category||'',
+   tool:row?.tool||'IA',
+   prompt:row?.prompt||'',
+   media:row?.media||'',
+   poster:row?.poster||'',
+   mediaZoom:Number.isFinite(+frame.mediaZoom)?+frame.mediaZoom:100,
+   mediaPosX:Number.isFinite(+frame.mediaPosX)?+frame.mediaPosX:50,
+   mediaPosY:Number.isFinite(+frame.mediaPosY)?+frame.mediaPosY:50
+ };
+}
+
 let items=loadSharedItems();
 
-function reloadSharedItems(){
- items=loadSharedItems();
- render();
+async function reloadSharedItems(){
+ if(!sbClient){
+   items=loadSharedItems();
+   render();
+   return false;
+ }
+
+ try{
+   const {data,error}=await sbClient
+     .from(WL_CONTENT_TABLE)
+     .select('*')
+     .order('created_at',{ascending:false});
+
+   if(error) throw error;
+
+   items=(Array.isArray(data)?data:[]).map(rowToLibraryItem);
+
+   try{
+     localStorage.setItem('worklive-studio-items',JSON.stringify(items));
+   }catch(e){
+     console.warn('Não foi possível atualizar o cache local da biblioteca:',e);
+   }
+
+   render();
+   return true;
+ }catch(e){
+   console.error('Falha ao sincronizar biblioteca pelo Supabase:',e);
+   items=loadSharedItems();
+   render();
+   return false;
+ }
 }
 
 window.addEventListener('storage',e=>{
- if(e.key==='worklive-studio-items') reloadSharedItems();
+ if(e.key==='worklive-studio-items'){
+   items=loadSharedItems();
+   render();
+ }
 });
 function saveItems(){try{localStorage.setItem('worklive-studio-items',JSON.stringify(items));return true}catch(e){showToast('Sem espaço para salvar. Use uma imagem menor.');return false}}
 let activeFilter='Vídeo';
@@ -1653,15 +1702,14 @@ $('#grid').addEventListener('click',e=>{
  const o=e.target.closest('[data-open]'); if(o){current=items.find(i=>i.id===+o.dataset.open);$('#modalMeta').textContent=current.type+' · '+current.category;$('#modalTitle').textContent=current.title;$('#modalPrompt').textContent=current.prompt;$('#modal').classList.remove('hidden')}
 });
 $('#closeModal').onclick=()=>$('#modal').classList.add('hidden'); $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#modal').classList.add('hidden')}); $('#modalCopy').onclick=()=>current&&copyText(current.prompt);
-$('#refreshBtn').onclick=()=>{reloadSharedItems();showToast('Biblioteca atualizada')};
+$('#refreshBtn').onclick=async()=>{const ok=await reloadSharedItems();showToast(ok?'Biblioteca sincronizada':'Biblioteca carregada do cache')};
 $('#logoutBtn').onclick=()=>logoutWorkLive();
 
 const isAdmin=false;
 
 // ===== ACESSO WORKLIVE STUDIO =====
-// Enquanto o Supabase não estiver conectado, esta versão usa a base local criada
-// pelo Admin no mesmo domínio/origem do GitHub Pages. Para clientes em aparelhos
-// diferentes, conectaremos o Supabase na próxima etapa.
+// Acesso e biblioteca conectados ao Supabase.
+// O localStorage permanece apenas como cache de segurança.
 const SUPABASE_URL='https://lalxflccimuxlnetxxsq.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhbHhmbGNjaW11eGxuZXR4eHNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MTIxNDQsImV4cCI6MjEwMzA4ODE0NH0.B2Zjth3gPWMyXeWi3bk3Vpl10t19sUdY_lPXPXz51vI';
 const CUSTOMER_KEY='worklive-admin-customers-v2';
@@ -1716,6 +1764,7 @@ function enter(){
 
   armSearchAutofillGuard();
   render();
+  reloadSharedItems().catch(err=>console.warn('Sincronização da biblioteca:',err));
 }
 function showDenied(message){
   hideAllScreens();
