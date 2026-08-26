@@ -961,7 +961,15 @@ async function resendAccess(c){
 
    let data={};
    try{data=await response.json()}catch(e){}
-   if(!response.ok)throw new Error(data.error||'Falha no envio');
+
+   if(!response.ok || data.error || data.email_sent===false || data.success===false){
+     throw new Error(
+       data.error ||
+       data.email_error ||
+       data.message ||
+       'O servidor não confirmou o envio do e-mail.'
+     );
+   }
 
    logEvent('Acesso reenviado automaticamente para '+c.email,'manual');
    adminToast('Acesso enviado para '+c.email+'.','success');
@@ -969,7 +977,6 @@ async function resendAccess(c){
    console.error(err);
    const detail=(err&&err.message)?err.message:'Falha desconhecida';
    adminToast('Falha no envio: '+detail,'danger');
-   setTimeout(()=>alert('O acesso foi salvo, mas o e-mail não foi enviado.\n\nDetalhe retornado pelo servidor:\n'+detail),120);
  }
 }
 
